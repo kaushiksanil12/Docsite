@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  devdocs:
+    build: .
+    container_name: devdocs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docs:/app/docs
+      - ./uploads:/app/uploads
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped

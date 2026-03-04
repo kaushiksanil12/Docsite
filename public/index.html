@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevDocs — Documentation</title>
+  <meta name="description" content="Minimal file-based documentation tool for DevOps learning">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">📖</span>
+        <span class="logo-text">DevDocs</span>
+      </div>
+      <button id="sidebar-toggle" class="icon-btn" title="Toggle sidebar">☰</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Search docs..." autocomplete="off">
+      <span class="search-icon">🔍</span>
+    </div>
+    <div id="search-results" class="search-results hidden"></div>
+
+    <div class="sidebar-actions">
+      <button id="btn-new-folder" class="action-btn" title="New folder">
+        <span>📁</span> New Folder
+      </button>
+      <button id="btn-new-file" class="action-btn" title="New file">
+        <span>📄</span> New File
+      </button>
+    </div>
+
+    <nav id="file-tree" class="file-tree"></nav>
+  </aside>
+
+  <!-- Floating toggle (visible when sidebar is collapsed) -->
+  <button id="sidebar-float-toggle" class="sidebar-float-toggle">☰</button>
+
+  <!-- Main Content -->
+  <main id="main" class="main">
+    <!-- Breadcrumbs -->
+    <div id="breadcrumbs" class="breadcrumbs"></div>
+
+    <!-- Toolbar -->
+    <div id="toolbar" class="toolbar hidden">
+      <button id="btn-edit" class="tool-btn" title="Edit (Ctrl+E)">✏️ Edit</button>
+      <button id="btn-save" class="tool-btn primary hidden" title="Save (Ctrl+S)">💾 Save</button>
+      <button id="btn-cancel" class="tool-btn hidden" title="Cancel (Esc)">✖ Cancel</button>
+      <button id="btn-upload" class="tool-btn hidden" title="Upload image">🖼️ Image</button>
+      <button id="btn-delete-doc" class="tool-btn danger" title="Delete this document">🗑️ Delete</button>
+      <input type="file" id="image-upload-input" accept="image/*" class="hidden">
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome" class="welcome">
+      <div class="welcome-content">
+        <h1>📖 Welcome to DevDocs</h1>
+        <p>Your personal DevOps documentation tool.</p>
+        <div class="welcome-grid">
+          <div class="welcome-card">
+            <span class="card-icon">📁</span>
+            <h3>Organize</h3>
+            <p>Create folders and files to structure your docs</p>
+          </div>
+          <div class="welcome-card">
+            <span class="card-icon">✍️</span>
+            <h3>Write</h3>
+            <p>Write in Markdown with live preview</p>
+          </div>
+          <div class="welcome-card">
+            <span class="card-icon">🖼️</span>
+            <h3>Screenshots</h3>
+            <p>Drag, drop, or paste images directly</p>
+          </div>
+          <div class="welcome-card">
+            <span class="card-icon">🔍</span>
+            <h3>Search</h3>
+            <p>Find anything across all your docs</p>
+          </div>
+        </div>
+        <div class="shortcuts">
+          <h3>Keyboard Shortcuts</h3>
+          <div class="shortcut-list">
+            <kbd>Ctrl+E</kbd> Edit &nbsp;|&nbsp;
+            <kbd>Ctrl+S</kbd> Save &nbsp;|&nbsp;
+            <kbd>Esc</kbd> Cancel &nbsp;|&nbsp;
+            <kbd>Ctrl+K</kbd> Search
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Viewer -->
+    <div id="viewer" class="viewer hidden">
+      <article id="doc-content" class="doc-content"></article>
+    </div>
+
+    <!-- Editor (split pane) -->
+    <div id="editor-pane" class="editor-pane hidden">
+      <div class="editor-container">
+        <div class="editor-side">
+          <div class="pane-label">Markdown</div>
+          <textarea id="editor" class="editor" placeholder="Write your markdown here..."></textarea>
+        </div>
+        <div class="preview-side">
+          <div class="pane-label">Preview</div>
+          <div id="preview" class="preview"></div>
+        </div>
+      </div>
+      <div id="drop-overlay" class="drop-overlay hidden">
+        <div class="drop-message">📎 Drop image here</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Context Menu -->
+  <div id="context-menu" class="context-menu hidden">
+    <button data-action="new-file">📄 New File Here</button>
+    <button data-action="new-folder">📁 New Folder Here</button>
+    <div class="menu-divider"></div>
+    <button data-action="rename">✏️ Rename</button>
+    <button data-action="delete" class="danger">🗑️ Delete</button>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+
+</html>
