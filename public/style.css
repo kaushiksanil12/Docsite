@@ -344,10 +344,11 @@ body {
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.75rem;
-  padding: 2px 4px;
+  font-size: 0.85rem;
+  padding: 4px 6px;
   border-radius: 3px;
   transition: all var(--transition);
+  line-height: 1;
 }
 
 .tree-action-btn:hover {
@@ -357,7 +358,7 @@ body {
 
 .tree-action-btn.delete-btn:hover {
   color: var(--red);
-  background: rgba(248, 81, 73, 0.1);
+  background: rgba(248, 81, 73, 0.15);
 }
 
 /* Inline input for new file/folder */
@@ -1016,6 +1017,51 @@ kbd {
 /* ─── Utilities ───────────────────────────────────────────────── */
 .hidden {
   display: none !important;
+}
+
+/* ─── Confirm Modal ───────────────────────────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  backdrop-filter: blur(4px);
+}
+
+.confirm-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  min-width: 320px;
+  max-width: 420px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.confirm-box p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.tool-btn.danger-solid {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.tool-btn.danger-solid:hover {
+  background: #da3633;
 }
 
 /* ─── Modal Overlay for Inline Inputs ─────────────────────────── */

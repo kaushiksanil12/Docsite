@@ -148,7 +148,8 @@
         const confirmMsg = type === 'folder'
             ? `Delete folder "${path}" and ALL its contents?`
             : `Delete "${path}"?`;
-        if (!confirm(confirmMsg)) return;
+        const ok = await showConfirm(confirmMsg);
+        if (!ok) return;
         const res = await api(`/api/doc/${path}`, { method: 'DELETE' });
         if (res.success) {
             toast('Deleted');
@@ -157,6 +158,30 @@
         } else {
             toast(res.error || 'Delete failed', 'error');
         }
+    }
+
+    // ─── Custom Confirm Modal ─────────────────────────────────────
+    const confirmModal = $('#confirm-modal');
+    const confirmMessage = $('#confirm-message');
+    const confirmOk = $('#confirm-ok');
+    const confirmCancelBtn = $('#confirm-cancel');
+
+    function showConfirm(message) {
+        return new Promise((resolve) => {
+            confirmMessage.textContent = message;
+            confirmModal.classList.remove('hidden');
+
+            const cleanup = () => {
+                confirmModal.classList.add('hidden');
+                confirmOk.removeEventListener('click', onOk);
+                confirmCancelBtn.removeEventListener('click', onCancel);
+            };
+            const onOk = () => { cleanup(); resolve(true); };
+            const onCancel = () => { cleanup(); resolve(false); };
+
+            confirmOk.addEventListener('click', onOk);
+            confirmCancelBtn.addEventListener('click', onCancel);
+        });
     }
 
     // ─── Inline Input (New file/folder in tree) ──────────────────
@@ -295,7 +320,8 @@
                 const confirmMsg = type === 'folder'
                     ? `Delete folder "${path}" and ALL its contents?`
                     : `Delete "${path}"?`;
-                if (!confirm(confirmMsg)) return;
+                const ok = await showConfirm(confirmMsg);
+                if (!ok) return;
                 const res = await api(`/api/doc/${path}`, { method: 'DELETE' });
                 if (res.success) {
                     toast('Deleted');
@@ -447,7 +473,8 @@
 
     btnDeleteDoc.addEventListener('click', async () => {
         if (!currentDoc) return;
-        if (!confirm(`Delete "${currentDoc}"?`)) return;
+        const ok = await showConfirm(`Delete "${currentDoc}"?`);
+        if (!ok) return;
         const res = await api(`/api/doc/${currentDoc}`, { method: 'DELETE' });
         if (res.success) {
             toast('Deleted');
