@@ -1,23 +1,23 @@
 /* ─── CSS Variables ────────────────────────────────────────────── */
 :root {
-  /* Default Dark Mode */
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #1c2333;
-  --bg-hover: #1f2a3a;
-  --bg-active: #253247;
-  --border: #30363d;
-  --border-light: #3d4450;
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #6e7681;
-  --accent: #58a6ff;
-  --accent-hover: #79b8ff;
-  --accent-bg: rgba(88, 166, 255, 0.1);
-  --green: #3fb950;
-  --red: #f85149;
-  --orange: #d29922;
-  --purple: #bc8cff;
+  /* Default Dark Mode (Pure Black & Neon Green) */
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #141414;
+  --bg-hover: #1f1f1f;
+  --bg-active: #2a2a2a;
+  --border: #222222;
+  --border-light: #333333;
+  --text-primary: #f0f0f0;
+  --text-secondary: #999999;
+  --text-muted: #666666;
+  --accent: #00ff41;
+  --accent-hover: #33ff66;
+  --accent-bg: rgba(0, 255, 65, 0.15);
+  --green: #00ff41;
+  --red: #ff3333;
+  --orange: #ff9900;
+  --purple: #aa55ff;
 
   --sidebar-width: 280px;
   --header-height: 52px;
@@ -39,10 +39,10 @@
   --text-primary: #1f2328;
   --text-secondary: #57606a;
   --text-muted: #6e7781;
-  --accent: #0969da;
-  --accent-hover: #0349b4;
-  --accent-bg: rgba(9, 105, 218, 0.1);
-  --green: #1a7f37;
+  --accent: #0a9d32;
+  --accent-hover: #077c27;
+  --accent-bg: rgba(10, 157, 50, 0.1);
+  --green: #0a9d32;
   --red: #cf222e;
   --orange: #9a6700;
   --purple: #8250df;
