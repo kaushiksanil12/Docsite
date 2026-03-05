@@ -1,5 +1,6 @@
 /* ─── CSS Variables ────────────────────────────────────────────── */
 :root {
+  /* Default Dark Mode */
   --bg-primary: #0d1117;
   --bg-secondary: #161b22;
   --bg-tertiary: #1c2333;
@@ -17,6 +18,7 @@
   --red: #f85149;
   --orange: #d29922;
   --purple: #bc8cff;
+
   --sidebar-width: 280px;
   --header-height: 52px;
   --radius: 8px;
@@ -24,6 +26,26 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --transition: 0.2s ease;
+}
+
+:root[data-theme='light'] {
+  --bg-primary: #f6f8fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #eaeef2;
+  --bg-active: #e1e6eb;
+  --border: #d0d7de;
+  --border-light: #d8dee4;
+  --text-primary: #1f2328;
+  --text-secondary: #57606a;
+  --text-muted: #6e7781;
+  --accent: #0969da;
+  --accent-hover: #0349b4;
+  --accent-bg: rgba(9, 105, 218, 0.1);
+  --green: #1a7f37;
+  --red: #cf222e;
+  --orange: #9a6700;
+  --purple: #8250df;
 }
 
 /* ─── Reset ───────────────────────────────────────────────────── */

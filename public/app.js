@@ -37,6 +37,7 @@
     const btnNewFolder = $('#btn-new-folder');
     const btnNewFile = $('#btn-new-file');
     const sidebarToggle = $('#sidebar-toggle');
+    const themeToggle = $('#theme-toggle');
 
     // Trash DOM refs
     const btnOpenTrash = $('#btn-open-trash');
@@ -668,6 +669,31 @@
     sidebarFloatToggle.addEventListener('click', () => {
         sidebar.classList.remove('collapsed');
     });
+
+    // ─── Theme Toggle ────────────────────────────────────────────
+    function getSavedTheme() {
+        return localStorage.getItem('devdocs-theme') || 'dark';
+    }
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            themeToggle.textContent = '🌙'; // Click to go dark
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            themeToggle.textContent = '☀️'; // Click to go light
+        }
+    }
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = getSavedTheme();
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('devdocs-theme', newTheme);
+        applyTheme(newTheme);
+    });
+
+    // Apply saved theme on startup
+    applyTheme(getSavedTheme());
 
     // ─── Keyboard Shortcuts ──────────────────────────────────────
     document.addEventListener('keydown', (e) => {
