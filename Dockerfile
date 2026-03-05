@@ -10,8 +10,12 @@ RUN npm ci --only=production
 COPY server.js ./
 COPY public/ ./public/
 
+# Copy docs and uploads (for persistence)
+COPY docs/ ./docs/
+COPY uploads/ ./uploads/
+
 # Create default directories
-RUN mkdir -p /app/docs /app/uploads
+RUN mkdir -p /app/docs /app/uploads /app/trash/docs /app/trash/uploads
 
 # Expose port
 EXPOSE 3000

@@ -92,6 +92,16 @@
             <h3>Search</h3>
             <p>Find anything across all your docs</p>
           </div>
+          <div class="welcome-card manual-card" id="open-manual">
+            <span class="card-icon">📘</span>
+            <h3>Manual</h3>
+            <p>View all features, commands &amp; tips</p>
+          </div>
+          <div class="welcome-card">
+            <span class="card-icon">🗑️</span>
+            <h3>Trash &amp; Restore</h3>
+            <p>Deleted files go to trash for recovery</p>
+          </div>
         </div>
         <div class="shortcuts">
           <h3>Keyboard Shortcuts</h3>
@@ -101,6 +111,223 @@
             <kbd>Esc</kbd> Cancel &nbsp;|&nbsp;
             <kbd>Ctrl+K</kbd> Search
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Panel -->
+    <div id="manual-panel" class="manual-overlay hidden">
+      <div class="manual-box">
+        <div class="manual-header">
+          <h2>📘 DevDocs Manual</h2>
+          <button id="btn-close-manual" class="tool-btn" title="Close">✕</button>
+        </div>
+        <div class="manual-content">
+
+          <section class="manual-section">
+            <h3>📁 File &amp; Folder Management</h3>
+            <table>
+              <tr>
+                <th>Action</th>
+                <th>How</th>
+              </tr>
+              <tr>
+                <td>Create file</td>
+                <td>Click <strong>📄 New File</strong> in sidebar or right-click a folder → New File Here</td>
+              </tr>
+              <tr>
+                <td>Create folder</td>
+                <td>Click <strong>📁 New Folder</strong> in sidebar or right-click a folder → New Folder Here</td>
+              </tr>
+              <tr>
+                <td>Rename</td>
+                <td>Right-click file/folder → ✏️ Rename</td>
+              </tr>
+              <tr>
+                <td>Delete</td>
+                <td>Click 🗑️ on hover, or right-click → Delete (moves to Trash)</td>
+              </tr>
+              <tr>
+                <td>Restore</td>
+                <td>Open Trash panel → click ↩ Restore</td>
+              </tr>
+            </table>
+          </section>
+
+          <section class="manual-section">
+            <h3>✍️ Editing Documents</h3>
+            <table>
+              <tr>
+                <th>Action</th>
+                <th>How</th>
+              </tr>
+              <tr>
+                <td>Edit a doc</td>
+                <td>Open any file → click <strong>✏️ Edit</strong> or press <kbd>Ctrl+E</kbd></td>
+              </tr>
+              <tr>
+                <td>Save changes</td>
+                <td>Click <strong>💾 Save</strong> or press <kbd>Ctrl+S</kbd></td>
+              </tr>
+              <tr>
+                <td>Cancel editing</td>
+                <td>Click <strong>✖ Cancel</strong> or press <kbd>Esc</kbd></td>
+              </tr>
+              <tr>
+                <td>New paragraph</td>
+                <td>Press <strong>Enter</strong> twice for a new paragraph</td>
+              </tr>
+              <tr>
+                <td>Tab indent</td>
+                <td>Press <strong>Tab</strong> to insert 2 spaces</td>
+              </tr>
+            </table>
+          </section>
+
+          <section class="manual-section">
+            <h3>🖼️ Images</h3>
+            <table>
+              <tr>
+                <th>Action</th>
+                <th>How</th>
+              </tr>
+              <tr>
+                <td>Upload via button</td>
+                <td>While editing, click <strong>🖼️ Image</strong> in toolbar</td>
+              </tr>
+              <tr>
+                <td>Drag &amp; drop</td>
+                <td>Drag an image file onto the editor area</td>
+              </tr>
+              <tr>
+                <td>Paste from clipboard</td>
+                <td>Copy an image and press <kbd>Ctrl+V</kbd> in the editor</td>
+              </tr>
+              <tr>
+                <td>Image lifecycle</td>
+                <td>Images are automatically deleted when their parent file/folder is deleted</td>
+              </tr>
+            </table>
+          </section>
+
+          <section class="manual-section">
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <table>
+              <tr>
+                <th>Shortcut</th>
+                <th>Action</th>
+              </tr>
+              <tr>
+                <td><kbd>Ctrl+E</kbd></td>
+                <td>Enter edit mode</td>
+              </tr>
+              <tr>
+                <td><kbd>Ctrl+S</kbd></td>
+                <td>Save document</td>
+              </tr>
+              <tr>
+                <td><kbd>Esc</kbd></td>
+                <td>Cancel editing / close menus</td>
+              </tr>
+              <tr>
+                <td><kbd>Ctrl+K</kbd></td>
+                <td>Focus search bar</td>
+              </tr>
+              <tr>
+                <td><kbd>Tab</kbd></td>
+                <td>Insert 2 spaces (in editor)</td>
+              </tr>
+            </table>
+          </section>
+
+          <section class="manual-section">
+            <h3>📝 Markdown Cheat Sheet</h3>
+            <table>
+              <tr>
+                <th>Syntax</th>
+                <th>Result</th>
+              </tr>
+              <tr>
+                <td><code># Heading 1</code></td>
+                <td>Large heading</td>
+              </tr>
+              <tr>
+                <td><code>## Heading 2</code></td>
+                <td>Section heading</td>
+              </tr>
+              <tr>
+                <td><code>**bold**</code></td>
+                <td><strong>bold</strong></td>
+              </tr>
+              <tr>
+                <td><code>*italic*</code></td>
+                <td><em>italic</em></td>
+              </tr>
+              <tr>
+                <td><code>`inline code`</code></td>
+                <td><code>inline code</code></td>
+              </tr>
+              <tr>
+                <td><code>```lang ... ```</code></td>
+                <td>Code block with syntax highlighting</td>
+              </tr>
+              <tr>
+                <td><code>- item</code></td>
+                <td>Bullet list</td>
+              </tr>
+              <tr>
+                <td><code>1. item</code></td>
+                <td>Numbered list</td>
+              </tr>
+              <tr>
+                <td><code>[text](url)</code></td>
+                <td>Hyperlink</td>
+              </tr>
+              <tr>
+                <td><code>![alt](url)</code></td>
+                <td>Image</td>
+              </tr>
+              <tr>
+                <td><code>> quote</code></td>
+                <td>Block quote</td>
+              </tr>
+              <tr>
+                <td><code>---</code></td>
+                <td>Horizontal rule</td>
+              </tr>
+            </table>
+          </section>
+
+          <section class="manual-section">
+            <h3>🗑️ Trash &amp; Recovery</h3>
+            <ul>
+              <li>Deleted files and folders are moved to <strong>Trash</strong>, not permanently deleted</li>
+              <li>Images referenced in deleted files are also moved to trash</li>
+              <li>Click <strong>🗑️ Trash</strong> in the sidebar to view/restore/permanently delete items</li>
+              <li>Use <strong>Empty Trash</strong> to permanently remove all trashed items</li>
+            </ul>
+          </section>
+
+          <section class="manual-section">
+            <h3>💡 Code Highlighting</h3>
+            <p>Use fenced code blocks with a language tag for automatic syntax highlighting:</p>
+            <pre><code>```javascript
+const app = express();
+```
+
+```bash
+docker build -t myapp .
+```
+
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+```</code></pre>
+            <p>Supported: javascript, python, bash, yaml, dockerfile, json, html, css, sql, go, rust, and 180+ more.</p>
+          </section>
+
         </div>
       </div>
     </div>

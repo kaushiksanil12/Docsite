@@ -296,12 +296,30 @@ app.post('/api/doc/*', (req, res) => {
   }
 
   try {
-    // Ensure parent directory exists
+    // Collect old image references before saving (for orphan cleanup)
+    let oldImages = [];
+    if (fs.existsSync(fullPath)) {
+      const oldContent = fs.readFileSync(fullPath, 'utf-8');
+      oldImages = extractImagePaths(oldContent);
+    }
+
+    // Save the new content
     const parentDir = path.dirname(fullPath);
     if (!fs.existsSync(parentDir)) {
       fs.mkdirSync(parentDir, { recursive: true });
     }
     fs.writeFileSync(fullPath, content, 'utf-8');
+
+    // Clean up orphaned images (removed from content)
+    const newImages = extractImagePaths(content);
+    const orphanedImages = oldImages.filter(img => !newImages.includes(img));
+    for (const img of orphanedImages) {
+      const imgPath = path.join(UPLOADS_DIR, img);
+      if (fs.existsSync(imgPath)) {
+        try { fs.unlinkSync(imgPath); } catch { /* skip */ }
+      }
+    }
+
     res.json({ success: true, path: relPath });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save file' });

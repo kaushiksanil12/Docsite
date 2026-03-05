@@ -404,6 +404,23 @@
     }
     window.__showWelcome = showWelcome;
 
+    // ─── Manual Panel ────────────────────────────────────────────
+    const manualPanel = $('#manual-panel');
+    const openManualBtn = $('#open-manual');
+    const closeManualBtn = $('#btn-close-manual');
+
+    openManualBtn.addEventListener('click', () => {
+        manualPanel.classList.remove('hidden');
+    });
+
+    closeManualBtn.addEventListener('click', () => {
+        manualPanel.classList.add('hidden');
+    });
+
+    manualPanel.addEventListener('click', (e) => {
+        if (e.target === manualPanel) manualPanel.classList.add('hidden');
+    });
+
     // ─── Editor ──────────────────────────────────────────────────
     function enterEditor() {
         if (!currentDoc) return;
