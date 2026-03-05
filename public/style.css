@@ -1548,7 +1548,11 @@ kbd {
 }
 
 .sync-field {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.sync-field.mt-lg {
+  margin-top: 24px;
 }
 
 .sync-field label {
@@ -1561,7 +1565,8 @@ kbd {
   margin-bottom: 6px;
 }
 
-.sync-field input[type="text"] {
+.sync-field input[type="text"],
+.sync-field input[type="password"] {
   width: 100%;
   padding: 10px 14px;
   background: var(--bg-primary);
@@ -1575,7 +1580,8 @@ kbd {
   box-sizing: border-box;
 }
 
-.sync-field input[type="text"]:focus {
+.sync-field input[type="text"]:focus,
+.sync-field input[type="password"]:focus {
   border-color: var(--accent);
 }
 
