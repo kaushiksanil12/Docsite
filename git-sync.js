@@ -384,4 +384,60 @@ function handleShutdown(signal) {
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 
-module.exports = { init, configure, getStatus, triggerSync, performSync, flushSync };
+async function pullRemote() {
+    if (isSyncing) throw new Error('Sync in progress');
+    isSyncing = true;
+    lastSyncStatus = 'syncing';
+
+    try {
+        ensureDataRepo();
+        setRemoteUrl(remoteUrl, syncPat);
+
+        // SYNC BEFORE PULL: Attempt to save local changes to GitHub first
+        console.log('  ⏳ Syncing local changes to GitHub before pull...');
+        try {
+            // Re-use core logic from performSync/flushSync but synchronously
+            copyDirSync(path.resolve('./docs'), path.join(DATA_REPO_DIR, 'docs'));
+            copyDirSync(path.resolve('./uploads'), path.join(DATA_REPO_DIR, 'uploads'));
+            gitExec('add -A');
+            try {
+                gitExec('diff --cached --quiet');
+            } catch {
+                // Has changes to commit
+                const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                gitExec(`commit -m "pre-pull auto-sync: ${timestamp}"`);
+                gitExec('push origin HEAD');
+                console.log('  ✅ Local changes pushed before pull');
+            }
+        } catch (syncErr) {
+            console.warn('  ⚠️ Pre-pull sync attempt skipped or failed:', syncErr.message);
+            // We continue with pull even if sync fails, as per user's "sync then pull" desire 
+            // but we don't want to block the pull if there's nothing to push or a minor git error
+        }
+
+        console.log('  ⏳ Pulling latest changes from GitHub...');
+        gitExec('fetch origin');
+        gitExec('reset --hard origin/HEAD'); // Overwrite local data-repo with remote
+
+        // Copy back from data-repo to local docs/ and uploads/
+        const docsDir = path.resolve('./docs');
+        const uploadsDir = path.resolve('./uploads');
+        copyDirSync(path.join(DATA_REPO_DIR, 'docs'), docsDir);
+        copyDirSync(path.join(DATA_REPO_DIR, 'uploads'), uploadsDir);
+
+        console.log('  ✅ Pulled latest changes from GitHub');
+        lastSyncStatus = 'success';
+        lastSyncError = '';
+        lastSyncTime = new Date().toISOString();
+        isSyncing = false;
+        return { success: true };
+    } catch (err) {
+        console.error('  ❌ Pull failed:', err.message);
+        lastSyncStatus = 'error';
+        lastSyncError = err.message;
+        isSyncing = false;
+        throw err;
+    }
+}
+
+module.exports = { init, configure, getStatus, triggerSync, performSync, pullRemote, flushSync };

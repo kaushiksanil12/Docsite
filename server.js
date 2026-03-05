@@ -581,6 +581,15 @@ app.post('/api/sync/trigger', (req, res) => {
   res.json(result);
 });
 
+app.post('/api/sync/pull', async (req, res) => {
+  try {
+    const result = await gitSync.pullRemote();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Catch-all: serve index.html ──────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

@@ -176,9 +176,14 @@
     const confirmOk = $('#confirm-ok');
     const confirmCancelBtn = $('#confirm-cancel');
 
-    function showConfirm(message) {
+    function showConfirm(message, okLabel = '🗑️ Delete', okClass = 'danger-solid') {
         return new Promise((resolve) => {
             confirmMessage.textContent = message;
+            confirmOk.textContent = okLabel;
+
+            // Reset classes and apply new one
+            confirmOk.className = 'tool-btn ' + okClass;
+
             confirmModal.classList.remove('hidden');
 
             const cleanup = () => {
@@ -867,6 +872,7 @@
     const syncPatInput = $('#sync-pat');
     const btnSaveSync = $('#btn-save-sync');
     const btnTriggerSync = $('#btn-trigger-sync');
+    const btnPullSync = $('#btn-pull-sync');
     const syncStatusText = $('#sync-status-text');
     const syncLastTime = $('#sync-last-time');
     const syncErrorRow = $('#sync-error-row');
@@ -893,12 +899,14 @@
             syncDescText.innerHTML = 'Your docs auto-sync to <strong>' + data.remoteUrl.replace(/https?:\/\/github\.com\//, '').replace('.git', '') + '</strong>. Change the URL below to switch repos.';
             btnSaveSync.textContent = '💾 Update Settings';
             btnTriggerSync.classList.remove('hidden');
+            btnPullSync.classList.remove('hidden');
             syncStatusBox.classList.remove('hidden');
         } else {
             syncPanelTitle.textContent = '🔄 Connect Your Data Repo';
             syncDescText.innerHTML = 'Create a <strong>new empty GitHub repo</strong> for your docs, then paste the URL below. Your notes and images will auto-sync there — separate from the app code.';
             btnSaveSync.textContent = '🔗 Connect & Sync';
             btnTriggerSync.classList.add('hidden');
+            btnPullSync.classList.add('hidden');
             syncStatusBox.classList.add('hidden');
         }
 
@@ -984,6 +992,36 @@
         } else {
             toast(res.error || 'Failed to connect', 'error');
             await loadSyncStatus(); // reset button text
+        }
+    });
+
+    btnPullSync.addEventListener('click', async () => {
+        const ok = await showConfirm(
+            'Sync & Pull from Remote? This will try to save your new files to GitHub first, then fetch all remote changes.',
+            '📥 Pull & Overwrite',
+            'primary'
+        );
+        if (!ok) return;
+
+        btnPullSync.disabled = true;
+        btnPullSync.textContent = '📥 Pulling...';
+
+        try {
+            const res = await api('/api/sync/pull', { method: 'POST' });
+            if (res.success) {
+                toast('Successfully pulled from remote!');
+                await loadTree(); // Refresh the file tree
+                await loadSyncStatus();
+            } else {
+                toast(res.error || 'Pull failed', 'error');
+                await loadSyncStatus();
+            }
+        } catch (err) {
+            toast(err.message || 'Pull failed', 'error');
+            await loadSyncStatus();
+        } finally {
+            btnPullSync.disabled = false;
+            btnPullSync.textContent = '📥 Pull from Remote';
         }
     });
 
