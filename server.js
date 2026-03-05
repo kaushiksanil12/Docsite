@@ -11,11 +11,20 @@ const rateLimit = require('express-rate-limit');
 const PORT = process.env.PORT || 3000;
 const DOCS_DIR = path.resolve(process.env.DOCS_DIR || './docs');
 const UPLOADS_DIR = path.resolve(process.env.UPLOADS_DIR || './uploads');
+const TRASH_DIR = path.resolve('./trash');
+const TRASH_DOCS_DIR = path.join(TRASH_DIR, 'docs');
+const TRASH_UPLOADS_DIR = path.join(TRASH_DIR, 'uploads');
+const TRASH_META_FILE = path.join(TRASH_DIR, 'meta.json');
 
 // Ensure directories exist
-[DOCS_DIR, UPLOADS_DIR].forEach(dir => {
+[DOCS_DIR, UPLOADS_DIR, TRASH_DOCS_DIR, TRASH_UPLOADS_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
+
+// Ensure trash meta file exists
+if (!fs.existsSync(TRASH_META_FILE)) {
+  fs.writeFileSync(TRASH_META_FILE, '[]', 'utf-8');
+}
 
 // ─── Marked config ─────────────────────────────────────────────────
 marked.setOptions({
@@ -85,6 +94,59 @@ function safePath(relPath) {
   const full = path.join(DOCS_DIR, cleaned);
   if (!full.startsWith(DOCS_DIR)) return null;
   return full;
+}
+
+/**
+ * Extract image filenames referenced in markdown content
+ * Matches patterns like ![alt](/uploads/filename.png)
+ */
+function extractImagePaths(content) {
+  const regex = /!\[.*?\]\(\/uploads\/([^)]+)\)/g;
+  const images = [];
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    images.push(match[1]);
+  }
+  return images;
+}
+
+/**
+ * Recursively collect all image references from .md files in a directory
+ */
+function collectImagesFromDir(dir) {
+  const images = [];
+  let entries;
+  try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return images; }
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      images.push(...collectImagesFromDir(fullPath));
+    } else if (entry.name.endsWith('.md')) {
+      try {
+        const content = fs.readFileSync(fullPath, 'utf-8');
+        images.push(...extractImagePaths(content));
+      } catch { /* skip */ }
+    }
+  }
+  return images;
+}
+
+/**
+ * Read trash metadata
+ */
+function readTrashMeta() {
+  try {
+    return JSON.parse(fs.readFileSync(TRASH_META_FILE, 'utf-8'));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Write trash metadata
+ */
+function writeTrashMeta(meta) {
+  fs.writeFileSync(TRASH_META_FILE, JSON.stringify(meta, null, 2), 'utf-8');
 }
 
 /**
@@ -246,7 +308,7 @@ app.post('/api/doc/*', (req, res) => {
   }
 });
 
-// Delete a file or folder
+// Delete a file or folder (soft delete — move to trash)
 app.delete('/api/doc/*', (req, res) => {
   const relPath = req.params[0];
   const fullPath = safePath(relPath);
@@ -258,14 +320,169 @@ app.delete('/api/doc/*', (req, res) => {
 
   try {
     const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      fs.rmSync(fullPath, { recursive: true, force: true });
-    } else {
-      fs.unlinkSync(fullPath);
+    const timestamp = Date.now();
+    const trashId = `${timestamp}_${path.basename(relPath)}`;
+    const trashDocPath = path.join(TRASH_DOCS_DIR, trashId);
+    const isDir = stat.isDirectory();
+
+    // Collect image references before moving
+    let images = [];
+    if (isDir) {
+      images = collectImagesFromDir(fullPath);
+    } else if (fullPath.endsWith('.md')) {
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      images = extractImagePaths(content);
     }
+
+    // Move images to trash
+    const trashedImages = [];
+    for (const img of images) {
+      const imgSrc = path.join(UPLOADS_DIR, img);
+      const imgDest = path.join(TRASH_UPLOADS_DIR, `${timestamp}_${img}`);
+      if (fs.existsSync(imgSrc)) {
+        fs.renameSync(imgSrc, imgDest);
+        trashedImages.push({ original: img, trashed: `${timestamp}_${img}` });
+      }
+    }
+
+    // Move the doc/folder to trash
+    fs.renameSync(fullPath, trashDocPath);
+
+    // Save metadata
+    const meta = readTrashMeta();
+    meta.push({
+      id: trashId,
+      originalPath: relPath,
+      type: isDir ? 'folder' : 'file',
+      deletedAt: new Date(timestamp).toISOString(),
+      images: trashedImages,
+    });
+    writeTrashMeta(meta);
+
+    res.json({ success: true, trashedTo: trashId });
+  } catch (err) {
+    console.error('Trash error:', err);
+    res.status(500).json({ error: 'Failed to move to trash' });
+  }
+});
+
+// ─── Trash API Routes ──────────────────────────────────────────────
+
+// List trashed items
+app.get('/api/trash', (req, res) => {
+  const meta = readTrashMeta();
+  res.json(meta);
+});
+
+// Restore a trashed item
+app.post('/api/trash/restore', (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'id is required' });
+
+  const meta = readTrashMeta();
+  const itemIdx = meta.findIndex(m => m.id === id);
+  if (itemIdx === -1) return res.status(404).json({ error: 'Trash item not found' });
+
+  const item = meta[itemIdx];
+  const trashDocPath = path.join(TRASH_DOCS_DIR, item.id);
+  const restorePath = path.join(DOCS_DIR, item.originalPath);
+
+  if (!fs.existsSync(trashDocPath)) {
+    // Item missing from trash, clean up meta
+    meta.splice(itemIdx, 1);
+    writeTrashMeta(meta);
+    return res.status(404).json({ error: 'Trash file not found on disk' });
+  }
+
+  try {
+    // Ensure parent directory exists
+    const parentDir = path.dirname(restorePath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+
+    // If destination already exists, add a suffix
+    let finalPath = restorePath;
+    if (fs.existsSync(finalPath)) {
+      const ext = path.extname(finalPath);
+      const base = finalPath.slice(0, -ext.length || undefined);
+      finalPath = `${base}_restored_${Date.now()}${ext}`;
+    }
+
+    // Restore the doc/folder
+    fs.renameSync(trashDocPath, finalPath);
+
+    // Restore images
+    for (const img of (item.images || [])) {
+      const imgTrash = path.join(TRASH_UPLOADS_DIR, img.trashed);
+      const imgRestore = path.join(UPLOADS_DIR, img.original);
+      if (fs.existsSync(imgTrash)) {
+        fs.renameSync(imgTrash, imgRestore);
+      }
+    }
+
+    // Remove from meta
+    meta.splice(itemIdx, 1);
+    writeTrashMeta(meta);
+
+    res.json({ success: true, restoredTo: item.originalPath });
+  } catch (err) {
+    console.error('Restore error:', err);
+    res.status(500).json({ error: 'Failed to restore' });
+  }
+});
+
+// Permanently delete a single trash item
+app.delete('/api/trash/:id', (req, res) => {
+  const { id } = req.params;
+  const meta = readTrashMeta();
+  const itemIdx = meta.findIndex(m => m.id === id);
+  if (itemIdx === -1) return res.status(404).json({ error: 'Trash item not found' });
+
+  const item = meta[itemIdx];
+
+  try {
+    // Delete doc/folder from trash
+    const trashDocPath = path.join(TRASH_DOCS_DIR, item.id);
+    if (fs.existsSync(trashDocPath)) {
+      const stat = fs.statSync(trashDocPath);
+      if (stat.isDirectory()) {
+        fs.rmSync(trashDocPath, { recursive: true, force: true });
+      } else {
+        fs.unlinkSync(trashDocPath);
+      }
+    }
+
+    // Delete images from trash
+    for (const img of (item.images || [])) {
+      const imgPath = path.join(TRASH_UPLOADS_DIR, img.trashed);
+      if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+    }
+
+    // Remove from meta
+    meta.splice(itemIdx, 1);
+    writeTrashMeta(meta);
+
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete' });
+    console.error('Permanent delete error:', err);
+    res.status(500).json({ error: 'Failed to permanently delete' });
+  }
+});
+
+// Empty all trash
+app.delete('/api/trash/clear/all', (req, res) => {
+  try {
+    // Remove all files in trash directories
+    fs.rmSync(TRASH_DOCS_DIR, { recursive: true, force: true });
+    fs.rmSync(TRASH_UPLOADS_DIR, { recursive: true, force: true });
+    fs.mkdirSync(TRASH_DOCS_DIR, { recursive: true });
+    fs.mkdirSync(TRASH_UPLOADS_DIR, { recursive: true });
+    writeTrashMeta([]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Empty trash error:', err);
+    res.status(500).json({ error: 'Failed to empty trash' });
   }
 });
 

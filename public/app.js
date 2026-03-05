@@ -38,6 +38,14 @@
     const btnNewFile = $('#btn-new-file');
     const sidebarToggle = $('#sidebar-toggle');
 
+    // Trash DOM refs
+    const btnOpenTrash = $('#btn-open-trash');
+    const trashPanel = $('#trash-panel');
+    const trashList = $('#trash-list');
+    const trashCountBadge = $('#trash-count');
+    const btnEmptyTrash = $('#btn-empty-trash');
+    const btnCloseTrash = $('#btn-close-trash');
+
     // ─── API helpers ─────────────────────────────────────────────
     async function api(url, opts = {}) {
         const res = await fetch(url, {
@@ -152,9 +160,10 @@
         if (!ok) return;
         const res = await api(`/api/doc/${path}`, { method: 'DELETE' });
         if (res.success) {
-            toast('Deleted');
+            toast('Moved to trash');
             if (currentDoc === path) { currentDoc = null; showWelcome(); }
             await loadTree();
+            updateTrashCount();
         } else {
             toast(res.error || 'Delete failed', 'error');
         }
@@ -324,9 +333,10 @@
                 if (!ok) return;
                 const res = await api(`/api/doc/${path}`, { method: 'DELETE' });
                 if (res.success) {
-                    toast('Deleted');
+                    toast('Moved to trash');
                     if (currentDoc === path) { currentDoc = null; showWelcome(); }
                     await loadTree();
+                    updateTrashCount();
                 } else toast(res.error, 'error');
                 break;
             }
@@ -477,9 +487,10 @@
         if (!ok) return;
         const res = await api(`/api/doc/${currentDoc}`, { method: 'DELETE' });
         if (res.success) {
-            toast('Deleted');
+            toast('Moved to trash');
             showWelcome();
             await loadTree();
+            updateTrashCount();
         } else toast(res.error, 'error');
     });
 
@@ -646,7 +657,116 @@
         }
     });
 
+    // ─── Trash Panel ─────────────────────────────────────────────
+    async function updateTrashCount() {
+        const items = await api('/api/trash');
+        const count = items.length || 0;
+        trashCountBadge.textContent = count;
+        if (count > 0) {
+            trashCountBadge.classList.remove('hidden');
+        } else {
+            trashCountBadge.classList.add('hidden');
+        }
+    }
+
+    async function openTrashPanel() {
+        trashPanel.classList.remove('hidden');
+        await renderTrashList();
+    }
+
+    function closeTrashPanel() {
+        trashPanel.classList.add('hidden');
+    }
+
+    async function renderTrashList() {
+        const items = await api('/api/trash');
+        trashList.innerHTML = '';
+
+        if (!items.length) {
+            trashList.innerHTML = '<div class="trash-empty-msg">🗑️ Trash is empty</div>';
+            btnEmptyTrash.classList.add('hidden');
+            return;
+        }
+
+        btnEmptyTrash.classList.remove('hidden');
+
+        // Show newest first
+        items.reverse();
+
+        for (const item of items) {
+            const el = document.createElement('div');
+            el.className = 'trash-item';
+            const icon = item.type === 'folder' ? '📁' : '📄';
+            const deletedDate = new Date(item.deletedAt).toLocaleString();
+            const imgCount = (item.images || []).length;
+            const imgInfo = imgCount > 0 ? ` · ${imgCount} image${imgCount > 1 ? 's' : ''}` : '';
+
+            el.innerHTML = `
+                <span class="trash-item-icon">${icon}</span>
+                <div class="trash-item-info">
+                    <div class="trash-item-name">${item.originalPath}</div>
+                    <div class="trash-item-meta">Deleted ${deletedDate}${imgInfo}</div>
+                </div>
+                <div class="trash-item-actions">
+                    <button class="trash-restore-btn" title="Restore">↩ Restore</button>
+                    <button class="trash-delete-btn" title="Delete permanently">✕</button>
+                </div>
+            `;
+
+            el.querySelector('.trash-restore-btn').addEventListener('click', async () => {
+                const res = await api('/api/trash/restore', {
+                    method: 'POST',
+                    body: JSON.stringify({ id: item.id }),
+                });
+                if (res.success) {
+                    toast(`Restored "${item.originalPath}"`);
+                    await renderTrashList();
+                    await loadTree();
+                    updateTrashCount();
+                } else {
+                    toast(res.error || 'Restore failed', 'error');
+                }
+            });
+
+            el.querySelector('.trash-delete-btn').addEventListener('click', async () => {
+                const ok = await showConfirm(`Permanently delete "${item.originalPath}"? This cannot be undone.`);
+                if (!ok) return;
+                const res = await api(`/api/trash/${item.id}`, { method: 'DELETE' });
+                if (res.success) {
+                    toast('Permanently deleted');
+                    await renderTrashList();
+                    updateTrashCount();
+                } else {
+                    toast(res.error || 'Delete failed', 'error');
+                }
+            });
+
+            trashList.appendChild(el);
+        }
+    }
+
+    btnOpenTrash.addEventListener('click', openTrashPanel);
+    btnCloseTrash.addEventListener('click', closeTrashPanel);
+
+    trashPanel.addEventListener('click', (e) => {
+        if (e.target === trashPanel) closeTrashPanel();
+    });
+
+    btnEmptyTrash.addEventListener('click', async () => {
+        const ok = await showConfirm('Permanently delete ALL items in trash? This cannot be undone.');
+        if (!ok) return;
+        const res = await api('/api/trash/clear/all', { method: 'DELETE' });
+        if (res.success) {
+            toast('Trash emptied');
+            await renderTrashList();
+            updateTrashCount();
+        } else {
+            toast(res.error || 'Failed to empty trash', 'error');
+        }
+    });
+
     // ─── Init ────────────────────────────────────────────────────
     loadTree();
+    updateTrashCount();
 
 })();

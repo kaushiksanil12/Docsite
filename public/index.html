@@ -40,6 +40,12 @@
     </div>
 
     <nav id="file-tree" class="file-tree"></nav>
+
+    <div class="sidebar-trash">
+      <button id="btn-open-trash" class="action-btn trash-btn" title="View Trash">
+        <span>🗑️</span> Trash <span id="trash-count" class="trash-count hidden">0</span>
+      </button>
+    </div>
   </aside>
 
   <!-- Floating toggle (visible when sidebar is collapsed) -->
@@ -129,6 +135,22 @@
       <div class="confirm-actions">
         <button id="confirm-cancel" class="tool-btn">Cancel</button>
         <button id="confirm-ok" class="tool-btn danger-solid">🗑️ Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trash Panel -->
+  <div id="trash-panel" class="trash-overlay hidden">
+    <div class="trash-box">
+      <div class="trash-header">
+        <h2>🗑️ Trash</h2>
+        <div class="trash-header-actions">
+          <button id="btn-empty-trash" class="tool-btn danger-solid" title="Empty all trash">Empty Trash</button>
+          <button id="btn-close-trash" class="tool-btn" title="Close">✕</button>
+        </div>
+      </div>
+      <div id="trash-list" class="trash-list">
+        <div class="trash-empty-msg">Trash is empty</div>
       </div>
     </div>
   </div>
