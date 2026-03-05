@@ -369,6 +369,13 @@
         const modified = new Date(data.lastModified).toLocaleString();
         docContent.innerHTML = `<div class="doc-meta">Last modified: ${modified}</div>` + data.html;
 
+        // Apply syntax highlighting to code blocks in viewer
+        if (window.hljs) {
+            docContent.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+
         // Store raw for editor
         editor.dataset.raw = data.raw;
     }
@@ -425,6 +432,12 @@
 
     function updatePreview() {
         preview.innerHTML = marked.parse(editor.value);
+        // Apply syntax highlighting to code blocks in preview
+        if (window.hljs) {
+            preview.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
     }
 
     // Wire up marked on client side — we load it from CDN
@@ -441,19 +454,36 @@
     hlScript.onload = () => {
         if (window.marked) {
             window.marked.setOptions({
-                highlight: (code, lang) => {
-                    if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value;
-                    return hljs.highlightAuto(code).value;
-                },
                 breaks: true,
                 gfm: true,
             });
         }
+        // Re-render preview now that hljs is available
+        if (isEditing) updatePreview();
     };
     document.head.appendChild(hlScript);
 
     editor.addEventListener('input', () => {
         if (markedReady) updatePreview();
+    });
+
+    // ─── Scroll Sync (Editor ↔ Preview) ──────────────────────────
+    let syncingScroll = false;
+
+    editor.addEventListener('scroll', () => {
+        if (syncingScroll) return;
+        syncingScroll = true;
+        const scrollRatio = editor.scrollTop / (editor.scrollHeight - editor.clientHeight || 1);
+        preview.scrollTop = scrollRatio * (preview.scrollHeight - preview.clientHeight);
+        requestAnimationFrame(() => { syncingScroll = false; });
+    });
+
+    preview.addEventListener('scroll', () => {
+        if (syncingScroll) return;
+        syncingScroll = true;
+        const scrollRatio = preview.scrollTop / (preview.scrollHeight - preview.clientHeight || 1);
+        editor.scrollTop = scrollRatio * (editor.scrollHeight - editor.clientHeight);
+        requestAnimationFrame(() => { syncingScroll = false; });
     });
 
     btnEdit.addEventListener('click', enterEditor);
