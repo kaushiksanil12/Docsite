@@ -812,6 +812,95 @@
         }
     });
 
+    // ─── Sync Settings Panel ─────────────────────────────────────
+    const syncPanel = $('#sync-panel');
+    const btnOpenSync = $('#btn-open-sync');
+    const btnCloseSync = $('#btn-close-sync');
+    const syncRemoteInput = $('#sync-remote-url');
+    const syncEnabledCheckbox = $('#sync-enabled');
+    const btnSaveSync = $('#btn-save-sync');
+    const btnTriggerSync = $('#btn-trigger-sync');
+    const syncStatusText = $('#sync-status-text');
+    const syncLastTime = $('#sync-last-time');
+    const syncErrorRow = $('#sync-error-row');
+    const syncErrorText = $('#sync-error-text');
+    const syncStatusDot = $('#sync-status-dot');
+
+    async function loadSyncStatus() {
+        const data = await api('/api/sync/status');
+        if (data.remoteUrl) syncRemoteInput.value = data.remoteUrl;
+        syncEnabledCheckbox.checked = data.enabled;
+
+        // Update status display
+        const statusMap = {
+            idle: '⏸️ Idle',
+            syncing: '🔄 Syncing...',
+            success: '✅ Synced',
+            error: '❌ Error',
+        };
+        syncStatusText.textContent = statusMap[data.status] || data.status;
+        syncLastTime.textContent = data.lastSync
+            ? new Date(data.lastSync).toLocaleString()
+            : 'Never';
+
+        // Error display
+        if (data.error) {
+            syncErrorRow.classList.remove('hidden');
+            syncErrorText.textContent = data.error;
+        } else {
+            syncErrorRow.classList.add('hidden');
+        }
+
+        // Dot color
+        syncStatusDot.className = 'sync-dot';
+        if (data.enabled && data.status === 'success') syncStatusDot.classList.add('active');
+        else if (data.status === 'syncing') syncStatusDot.classList.add('syncing');
+        else if (data.status === 'error') syncStatusDot.classList.add('error');
+    }
+
+    btnOpenSync.addEventListener('click', async () => {
+        syncPanel.classList.remove('hidden');
+        await loadSyncStatus();
+    });
+
+    btnCloseSync.addEventListener('click', () => {
+        syncPanel.classList.add('hidden');
+    });
+
+    syncPanel.addEventListener('click', (e) => {
+        if (e.target === syncPanel) syncPanel.classList.add('hidden');
+    });
+
+    btnSaveSync.addEventListener('click', async () => {
+        const res = await api('/api/sync/configure', {
+            method: 'POST',
+            body: JSON.stringify({
+                enabled: syncEnabledCheckbox.checked,
+                remoteUrl: syncRemoteInput.value.trim(),
+            }),
+        });
+        if (res.success) {
+            toast('Sync settings saved');
+            await loadSyncStatus();
+        } else {
+            toast(res.error || 'Failed to save', 'error');
+        }
+    });
+
+    btnTriggerSync.addEventListener('click', async () => {
+        const res = await api('/api/sync/trigger', { method: 'POST' });
+        if (res.success) {
+            toast('Sync triggered');
+            // Poll status after a short delay
+            setTimeout(loadSyncStatus, 3000);
+        } else {
+            toast(res.error || 'Sync not configured', 'error');
+        }
+    });
+
+    // Poll sync status every 30 seconds
+    setInterval(loadSyncStatus, 30000);
+
     // ─── Init ────────────────────────────────────────────────────
     loadTree();
     updateTrashCount();

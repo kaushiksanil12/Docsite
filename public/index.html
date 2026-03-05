@@ -45,8 +45,57 @@
       <button id="btn-open-trash" class="action-btn trash-btn" title="View Trash">
         <span>🗑️</span> Trash <span id="trash-count" class="trash-count hidden">0</span>
       </button>
+      <button id="btn-open-sync" class="action-btn sync-btn" title="Sync Settings">
+        <span>🔄</span> Sync <span id="sync-status-dot" class="sync-dot"></span>
+      </button>
     </div>
   </aside>
+
+  <!-- Sync Settings Panel -->
+  <div id="sync-panel" class="sync-overlay hidden">
+    <div class="sync-box">
+      <div class="sync-header">
+        <h2>🔄 GitHub Auto-Sync</h2>
+        <button id="btn-close-sync" class="tool-btn" title="Close">✕</button>
+      </div>
+      <div class="sync-content">
+        <p class="sync-desc">Your docs and images are saved to a <strong>separate GitHub repo</strong> — not this app's
+          codebase. Fork this app, configure your own repo below, and your personal data stays yours.</p>
+
+        <div class="sync-field">
+          <label for="sync-remote-url">GitHub Repository URL</label>
+          <input type="text" id="sync-remote-url" placeholder="https://github.com/user/repo.git" autocomplete="off">
+        </div>
+
+        <div class="sync-field">
+          <label class="sync-toggle-label">
+            <input type="checkbox" id="sync-enabled">
+            <span class="sync-toggle-text">Enable auto-sync</span>
+          </label>
+        </div>
+
+        <div class="sync-actions">
+          <button id="btn-save-sync" class="action-btn primary">💾 Save Settings</button>
+          <button id="btn-trigger-sync" class="action-btn">⚡ Sync Now</button>
+        </div>
+
+        <div id="sync-status-box" class="sync-status-box">
+          <div class="sync-status-row">
+            <span class="sync-label">Status:</span>
+            <span id="sync-status-text" class="sync-value">—</span>
+          </div>
+          <div class="sync-status-row">
+            <span class="sync-label">Last sync:</span>
+            <span id="sync-last-time" class="sync-value">Never</span>
+          </div>
+          <div id="sync-error-row" class="sync-status-row sync-error-row hidden">
+            <span class="sync-label">Error:</span>
+            <span id="sync-error-text" class="sync-value sync-error-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Floating toggle (visible when sidebar is collapsed) -->
   <button id="sidebar-float-toggle" class="sidebar-float-toggle">☰</button>

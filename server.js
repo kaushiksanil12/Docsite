@@ -6,6 +6,7 @@ const hljs = require('highlight.js');
 const multer = require('multer');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const gitSync = require('./git-sync');
 
 // ─── Config ────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -564,6 +565,22 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   res.json({ success: true, url, filename: req.file.filename });
 });
 
+// ─── Sync API ──────────────────────────────────────────────────────
+app.get('/api/sync/status', (req, res) => {
+  res.json(gitSync.getStatus());
+});
+
+app.post('/api/sync/configure', (req, res) => {
+  const { enabled, remoteUrl } = req.body;
+  gitSync.configure({ enabled, remoteUrl }, [DOCS_DIR, UPLOADS_DIR, TRASH_DIR]);
+  res.json({ success: true, ...gitSync.getStatus() });
+});
+
+app.post('/api/sync/trigger', (req, res) => {
+  const result = gitSync.triggerSync();
+  res.json(result);
+});
+
 // ─── Catch-all: serve index.html ──────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -582,5 +599,15 @@ app.listen(PORT, () => {
   console.log(`  ║   http://localhost:${PORT}              ║`);
   console.log(`  ╚══════════════════════════════════════╝\n`);
   console.log(`  📁 Docs directory:    ${DOCS_DIR}`);
-  console.log(`  🖼️  Uploads directory: ${UPLOADS_DIR}\n`);
+  console.log(`  🖼️  Uploads directory: ${UPLOADS_DIR}`);
+
+  // Initialize git auto-sync
+  gitSync.init([DOCS_DIR, UPLOADS_DIR, TRASH_DIR]);
+  const syncStatus = gitSync.getStatus();
+  if (syncStatus.enabled) {
+    console.log(`  🔄 Auto-sync: enabled (${syncStatus.remoteUrl})`);
+  } else {
+    console.log(`  🔄 Auto-sync: disabled (configure in Settings)`);
+  }
+  console.log('');
 });

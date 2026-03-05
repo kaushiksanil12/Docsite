@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Install git for auto-sync feature
+RUN apk add --no-cache git
+
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -7,14 +10,10 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy application code
-COPY server.js ./
+COPY server.js git-sync.js ./
 COPY public/ ./public/
 
-# Copy docs and uploads (for persistence)
-COPY docs/ ./docs/
-COPY uploads/ ./uploads/
-
-# Create default directories
+# Create empty data directories (populated at runtime)
 RUN mkdir -p /app/docs /app/uploads /app/trash/docs /app/trash/uploads
 
 # Expose port
