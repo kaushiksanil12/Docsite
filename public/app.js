@@ -843,6 +843,7 @@
     const btnOpenSync = $('#btn-open-sync');
     const btnCloseSync = $('#btn-close-sync');
     const syncRemoteInput = $('#sync-remote-url');
+    const syncPatInput = $('#sync-pat');
     const btnSaveSync = $('#btn-save-sync');
     const btnTriggerSync = $('#btn-trigger-sync');
     const syncStatusText = $('#sync-status-text');
@@ -857,13 +858,19 @@
     function updateSyncUI(data) {
         if (data.remoteUrl) syncRemoteInput.value = data.remoteUrl;
 
+        // Show masked placeholder if PAT is securely stored on server
+        if (data.hasPat) {
+            syncPatInput.placeholder = '•••••••••••••••••••• (Saved)';
+            syncPatInput.value = ''; // Don't expose original token
+        }
+
         const isConnected = data.enabled && data.remoteUrl;
 
         // Update panel appearance based on state
         if (isConnected) {
             syncPanelTitle.textContent = '🔄 Sync Connected';
             syncDescText.innerHTML = 'Your docs auto-sync to <strong>' + data.remoteUrl.replace(/https?:\/\/github\.com\//, '').replace('.git', '') + '</strong>. Change the URL below to switch repos.';
-            btnSaveSync.textContent = '💾 Update';
+            btnSaveSync.textContent = '💾 Update Settings';
             btnTriggerSync.classList.remove('hidden');
             syncStatusBox.classList.remove('hidden');
         } else {
@@ -889,7 +896,7 @@
         // Error display
         if (data.error) {
             syncErrorRow.classList.remove('hidden');
-            syncErrorText.textContent = data.error;
+            syncErrorText.textContent = data.error.replace(/(ghp_[a-zA-Z0-9]+)/g, '***'); // mask tokens in errors
         } else {
             syncErrorRow.classList.add('hidden');
         }
@@ -923,22 +930,39 @@
     // Save = auto-enable sync when URL is provided
     btnSaveSync.addEventListener('click', async () => {
         const url = syncRemoteInput.value.trim();
+        const pat = syncPatInput.value.trim();
+
         if (!url) {
             toast('Please enter a GitHub repo URL', 'error');
             return;
         }
+
+        const payload = {
+            enabled: true,
+            remoteUrl: url,
+        };
+        // Only send PAT if user typed a new one, else keep existing
+        if (pat) {
+            payload.pat = pat;
+        }
+
+        btnSaveSync.disabled = true;
+        btnSaveSync.textContent = 'Connecting...';
+
         const res = await api('/api/sync/configure', {
             method: 'POST',
-            body: JSON.stringify({
-                enabled: true, // Always auto-enable when saving
-                remoteUrl: url,
-            }),
+            body: JSON.stringify(payload),
         });
+
+        btnSaveSync.disabled = false;
+
         if (res.success) {
             toast('Connected! Auto-sync enabled');
+            syncPatInput.value = ''; // clear input for security
             await loadSyncStatus();
         } else {
             toast(res.error || 'Failed to connect', 'error');
+            await loadSyncStatus(); // reset button text
         }
     });
 

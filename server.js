@@ -571,8 +571,8 @@ app.get('/api/sync/status', (req, res) => {
 });
 
 app.post('/api/sync/configure', (req, res) => {
-  const { enabled, remoteUrl } = req.body;
-  gitSync.configure({ enabled, remoteUrl }, [DOCS_DIR, UPLOADS_DIR, TRASH_DIR]);
+  const { enabled, remoteUrl, pat } = req.body;
+  gitSync.configure({ enabled, remoteUrl, pat }, [DOCS_DIR, UPLOADS_DIR, TRASH_DIR]);
   res.json({ success: true, ...gitSync.getStatus() });
 });
 

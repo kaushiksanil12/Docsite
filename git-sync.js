@@ -22,6 +22,7 @@ const DEBOUNCE_MS = 30000; // 30 seconds after last change
 
 let syncEnabled = false;
 let remoteUrl = '';
+let syncPat = ''; // New: store Personal Access Token in memory
 let debounceTimer = null;
 let isSyncing = false;
 let lastSyncTime = null;
@@ -36,16 +37,18 @@ function loadConfig() {
             const data = JSON.parse(fs.readFileSync(SYNC_CONFIG_FILE, 'utf-8'));
             syncEnabled = !!data.enabled;
             remoteUrl = data.remoteUrl || '';
+            syncPat = data.pat || '';
             return data;
         }
     } catch { /* ignore */ }
-    return { enabled: false, remoteUrl: '' };
+    return { enabled: false, remoteUrl: '', pat: '' };
 }
 
 function saveConfig() {
     fs.writeFileSync(SYNC_CONFIG_FILE, JSON.stringify({
         enabled: syncEnabled,
         remoteUrl: remoteUrl,
+        pat: syncPat
     }, null, 2), 'utf-8');
 }
 
@@ -88,13 +91,21 @@ function getRemoteUrl() {
     } catch { return ''; }
 }
 
-function setRemoteUrl(url) {
+function setRemoteUrl(url, pat) {
     try {
+        let authUrl = url;
+        // Inject PAT for HTTPS URLs if provided
+        if (pat && url.startsWith('https://')) {
+            const withoutProtocol = url.replace('https://', '');
+            // format: https://<PAT>@github.com/...
+            authUrl = `https://${pat}@${withoutProtocol}`;
+        }
+
         const existing = getRemoteUrl();
         if (existing) {
-            gitExec(`remote set-url origin "${url}"`);
+            gitExec(`remote set-url origin "${authUrl}"`);
         } else {
-            gitExec(`remote add origin "${url}"`);
+            gitExec(`remote add origin "${authUrl}"`);
         }
         return true;
     } catch (err) {
@@ -159,11 +170,8 @@ async function performSync() {
     try {
         ensureDataRepo();
 
-        // Set remote if needed
-        const currentRemote = getRemoteUrl();
-        if (currentRemote !== remoteUrl) {
-            setRemoteUrl(remoteUrl);
-        }
+        // Pass PAT to configure credentialed remote
+        setRemoteUrl(remoteUrl, syncPat);
 
         // Copy docs and uploads into the data repo
         const docsDir = path.resolve('./docs');
@@ -255,6 +263,7 @@ function getStatus() {
     return {
         enabled: syncEnabled,
         remoteUrl: remoteUrl,
+        hasPat: !!syncPat, // Only return boolean for security
         status: lastSyncStatus,
         lastSync: lastSyncTime,
         error: lastSyncError,
@@ -262,9 +271,19 @@ function getStatus() {
     };
 }
 
-function configure({ enabled, remoteUrl: url }, watchDirs) {
+function configure({ enabled, remoteUrl: url, pat }, watchDirs) {
     if (url !== undefined) remoteUrl = url;
+    if (pat !== undefined) syncPat = pat;
     if (enabled !== undefined) syncEnabled = !!enabled;
+
+    // Scour the PAT from the remoteURL if the user incorrectly pasted it there
+    if (remoteUrl && remoteUrl.includes('@github.com')) {
+        const parts = remoteUrl.split('@');
+        const tokenPart = parts[0].replace('https://', '');
+        syncPat = tokenPart; // save extracted token
+        remoteUrl = 'https://' + parts[1]; // save clean url
+    }
+
     saveConfig();
 
     if (syncEnabled && remoteUrl) {
