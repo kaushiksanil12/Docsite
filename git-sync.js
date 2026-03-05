@@ -300,4 +300,69 @@ function triggerSync() {
     return { success: true };
 }
 
-module.exports = { init, configure, getStatus, triggerSync, performSync };
+// ─── Synchronous Flush (for shutdown) ─────────────────────────────
+// Blocks until commit + push are complete. Called during graceful shutdown.
+function flushSync() {
+    if (!syncEnabled || !remoteUrl) return;
+    if (!isDataRepoInit()) return;
+
+    try {
+        ensureDataRepo();
+
+        const currentRemote = getRemoteUrl();
+        if (currentRemote !== remoteUrl) setRemoteUrl(remoteUrl);
+
+        // Copy docs and uploads
+        const docsDir = path.resolve('./docs');
+        const uploadsDir = path.resolve('./uploads');
+        copyDirSync(docsDir, path.join(DATA_REPO_DIR, 'docs'));
+        copyDirSync(uploadsDir, path.join(DATA_REPO_DIR, 'uploads'));
+
+        // Stage
+        gitExec('add -A');
+
+        // Check for changes
+        try {
+            gitExec('diff --cached --quiet');
+            console.log('  ✅ No unsaved changes — clean shutdown');
+            return;
+        } catch {
+            // has staged changes
+        }
+
+        // Commit
+        const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        gitExec(`commit -m "auto-sync (shutdown): ${timestamp}"`);
+
+        // Push SYNCHRONOUSLY — block until done
+        console.log('  ⏳ Flushing data to GitHub before shutdown...');
+        execSync('git push -u origin HEAD', {
+            cwd: DATA_REPO_DIR,
+            encoding: 'utf-8',
+            timeout: 60000,
+        });
+
+        console.log('  ✅ Data safely pushed to GitHub');
+        lastSyncTime = new Date().toISOString();
+        lastSyncStatus = 'success';
+    } catch (err) {
+        console.error('  ❌ Shutdown sync failed:', err.message);
+    }
+}
+
+// ─── Graceful Shutdown ────────────────────────────────────────────
+let shutdownHandled = false;
+function handleShutdown(signal) {
+    if (shutdownHandled) return;
+    shutdownHandled = true;
+    console.log(`\n  🛑 Received ${signal} — syncing before exit...`);
+    if (debounceTimer) clearTimeout(debounceTimer);
+    stopWatching();
+    flushSync();
+    process.exit(0);
+}
+
+process.on('SIGINT', () => handleShutdown('SIGINT'));
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+
+module.exports = { init, configure, getStatus, triggerSync, performSync, flushSync };
