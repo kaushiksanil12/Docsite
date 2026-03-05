@@ -2,7 +2,7 @@ node_modules/
 docs/
 uploads/
 trash/
-.data-git/
+.data-repo/
 .env
 .sync-config.json
 *.log

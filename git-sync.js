@@ -1,15 +1,15 @@
 /**
  * git-sync.js — Auto-sync docs and uploads to a SEPARATE GitHub repo
  *
- * Uses a dedicated .data-git/ directory as a separate git repository,
- * completely independent from the app's code repo (.git/).
+ * Strategy: maintains a separate git worktree at .data-repo/ that
+ * mirrors the docs/ and uploads/ directories. On sync, files are
+ * copied into .data-repo/, committed, and pushed.
  *
  * Architecture:
- *   .git/       → App code repo (what developers fork)
- *   .data-git/  → User data repo (each user's personal docs)
+ *   .git/        → App code repo (what developers fork)
+ *   .data-repo/  → Separate git repo with only docs & uploads
  *
- * This way, when someone forks the app, their docs/uploads are saved
- * in their OWN repo, not mixed with the codebase.
+ * This way, each user's personal docs push to their OWN repo.
  */
 
 const { execSync, exec } = require('child_process');
@@ -17,8 +17,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SYNC_CONFIG_FILE = path.resolve('./.sync-config.json');
-const DATA_GIT_DIR = path.resolve('./.data-git');
-const WORK_TREE = process.cwd();
+const DATA_REPO_DIR = path.resolve('./.data-repo');
 const DEBOUNCE_MS = 30000; // 30 seconds after last change
 
 let syncEnabled = false;
@@ -50,56 +49,37 @@ function saveConfig() {
     }, null, 2), 'utf-8');
 }
 
-// ─── Git Helpers (operate on .data-git, NOT .git) ───────────────
-function gitCmd(args) {
-    return `git --git-dir="${DATA_GIT_DIR}" --work-tree="${WORK_TREE}" ${args}`;
-}
-
+// ─── Git Helpers (all operate inside .data-repo/) ─────────────────
 function gitExec(args) {
-    return execSync(gitCmd(args), { cwd: WORK_TREE, encoding: 'utf-8', timeout: 30000 });
+    return execSync(`git ${args}`, {
+        cwd: DATA_REPO_DIR,
+        encoding: 'utf-8',
+        timeout: 30000,
+    });
 }
 
 function isDataRepoInit() {
-    return fs.existsSync(path.join(DATA_GIT_DIR, 'HEAD'));
+    return fs.existsSync(path.join(DATA_REPO_DIR, '.git', 'HEAD'));
 }
 
 function ensureDataRepo() {
     if (!isDataRepoInit()) {
-        // Initialize a bare-like separate git dir
-        execSync(`git init --separate-git-dir "${DATA_GIT_DIR}"`, {
-            cwd: WORK_TREE,
-            encoding: 'utf-8',
-            timeout: 10000,
-        });
-        // The above creates a .git file (pointer) in WORK_TREE — remove it
-        // since we already have the real .git for the code repo
-        const gitPointer = path.join(WORK_TREE, '.git');
-        if (fs.existsSync(gitPointer) && fs.statSync(gitPointer).isFile()) {
-            // It's a pointer file, check if it points to .data-git
-            const content = fs.readFileSync(gitPointer, 'utf-8');
-            if (content.includes('.data-git') || content.includes('data-git')) {
-                fs.unlinkSync(gitPointer);
-            }
-        }
+        // Create the data repo directory and init a fresh git repo inside it
+        fs.mkdirSync(DATA_REPO_DIR, { recursive: true });
+        execSync('git init', { cwd: DATA_REPO_DIR, encoding: 'utf-8', timeout: 10000 });
 
-        // Create a .gitignore inside the data repo to ONLY track docs and uploads
-        const dataGitignore = path.join(DATA_GIT_DIR, 'info', 'exclude');
-        fs.mkdirSync(path.join(DATA_GIT_DIR, 'info'), { recursive: true });
-        fs.writeFileSync(dataGitignore, [
-            '# Only track docs and uploads — ignore everything else',
-            '/*',
-            '!/docs/',
-            '!/uploads/',
-        ].join('\n'), 'utf-8');
-
-        // Set git config for the data repo
+        // Configure git user for the data repo
         try {
             gitExec('config user.name "DevDocs Auto-Sync"');
             gitExec('config user.email "devdocs@local"');
         } catch { /* ignore */ }
 
-        console.log('  📦 Initialized separate data repo (.data-git)');
+        console.log('  📦 Initialized data repo (.data-repo)');
     }
+
+    // Ensure subdirectories exist
+    fs.mkdirSync(path.join(DATA_REPO_DIR, 'docs'), { recursive: true });
+    fs.mkdirSync(path.join(DATA_REPO_DIR, 'uploads'), { recursive: true });
 }
 
 function getRemoteUrl() {
@@ -123,6 +103,51 @@ function setRemoteUrl(url) {
     }
 }
 
+// ─── File Copy Helpers ────────────────────────────────────────────
+function copyDirSync(src, dest) {
+    if (!fs.existsSync(src)) return;
+    fs.mkdirSync(dest, { recursive: true });
+
+    // Remove old files in dest that no longer exist in src
+    if (fs.existsSync(dest)) {
+        const destFiles = getAllFiles(dest);
+        const srcFiles = getAllFiles(src).map(f => path.relative(src, f));
+        for (const df of destFiles) {
+            const rel = path.relative(dest, df);
+            if (!srcFiles.includes(rel)) {
+                try { fs.unlinkSync(df); } catch { /* skip */ }
+            }
+        }
+    }
+
+    // Copy all files from src to dest
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+            copyDirSync(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
+function getAllFiles(dir) {
+    const results = [];
+    if (!fs.existsSync(dir)) return results;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            results.push(...getAllFiles(full));
+        } else {
+            results.push(full);
+        }
+    }
+    return results;
+}
+
 // ─── Sync Logic ───────────────────────────────────────────────────
 async function performSync() {
     if (isSyncing) return;
@@ -140,9 +165,14 @@ async function performSync() {
             setRemoteUrl(remoteUrl);
         }
 
-        // Stage docs and uploads
-        try { gitExec('add docs/'); } catch { /* might not exist yet */ }
-        try { gitExec('add uploads/'); } catch { /* might not exist yet */ }
+        // Copy docs and uploads into the data repo
+        const docsDir = path.resolve('./docs');
+        const uploadsDir = path.resolve('./uploads');
+        copyDirSync(docsDir, path.join(DATA_REPO_DIR, 'docs'));
+        copyDirSync(uploadsDir, path.join(DATA_REPO_DIR, 'uploads'));
+
+        // Stage everything
+        gitExec('add -A');
 
         // Check if there are changes to commit
         try {
@@ -159,9 +189,8 @@ async function performSync() {
         const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
         gitExec(`commit -m "auto-sync: ${timestamp}"`);
 
-        // Push (async to avoid blocking)
-        const pushCmd = gitCmd('push -u origin HEAD');
-        exec(pushCmd, { cwd: WORK_TREE, timeout: 60000 }, (err) => {
+        // Push (async to avoid blocking the server)
+        exec('git push -u origin HEAD', { cwd: DATA_REPO_DIR, timeout: 60000 }, (err) => {
             if (err) {
                 console.error('  ❌ Git push failed:', err.message);
                 lastSyncStatus = 'error';
@@ -199,7 +228,7 @@ function startWatching(dirs) {
         try {
             const watcher = fs.watch(dir, { recursive: true }, (eventType, filename) => {
                 if (!filename) return;
-                if (filename.startsWith('.git') || filename.startsWith('.data-git')) return;
+                if (filename.startsWith('.git') || filename.startsWith('.data-repo')) return;
                 if (filename === '.sync-config.json') return;
                 scheduleSync();
             });
@@ -250,7 +279,6 @@ function configure({ enabled, remoteUrl: url }, watchDirs) {
 function init(watchDirs) {
     loadConfig();
 
-    // Pick up remote from existing data repo if available
     if (!remoteUrl && isDataRepoInit()) {
         const existing = getRemoteUrl();
         if (existing) {
