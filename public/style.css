@@ -1654,3 +1654,24 @@ kbd {
   text-align: right;
   max-width: 300px;
 }
+
+/* ─── Highlights ─────────────────────────────────────────────── */
+.highlight-pulse {
+  animation: highlight-pulse-anim 2s ease-out;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes highlight-pulse-anim {
+  0% {
+    background-color: transparent;
+  }
+
+  20% {
+    background-color: rgba(0, 255, 102, 0.15);
+    box-shadow: 0 0 15px rgba(0, 255, 102, 0.1);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}

@@ -75,8 +75,8 @@
         <div class="sync-field mt-lg">
           <label for="sync-pat">GitHub Personal Access Token (PAT)</label>
           <input type="password" id="sync-pat" placeholder="ghp_xxxxxxxxxxxxxxxxxxx" autocomplete="off">
-          <span class="sync-field-hint">Required for auto-sync without local git login. Find this in GitHub Settings →
-            Developer Settings.</span>
+          <span class="sync-field-hint">Required for auto-sync without local git login. <a href="#" id="link-learn-pat"
+              style="color:var(--accent); text-decoration: underline; cursor: pointer;">Learn more in manual</a></span>
         </div>
 
         <div class="sync-actions">
@@ -362,16 +362,37 @@
             </ul>
           </section>
 
-          <section class="manual-section">
+          <section class="manual-section" id="manual-git-sync">
             <h3>🔄 Git Repo Auto-Sync</h3>
             <p>DevDocs can automatically backup all your documentation to a private GitHub repository.</p>
             <ul>
               <li>Click <strong>🔄 Sync</strong> at the bottom of the sidebar to open the setup panel.</li>
               <li>Create a new empty repository on GitHub and paste the URL.</li>
+              <li><strong>Personal Access Token (PAT):</strong> Provide a token from GitHub Settings to allow syncing
+                from any machine without needing to log in to Git locally.</li>
               <li>Every time you create, edit, or delete a file, changes are safely pushed to GitHub.</li>
               <li>The green dot <span class="sync-dot active" style="display:inline-block;position:static;"></span> on
                 the sync button means everything is up-to-date!</li>
             </ul>
+
+            <div id="manual-pat-instructions"
+              style="margin-top: 15px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--accent);">
+              <h4 style="margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-primary);">How to generate your GitHub
+                PAT?</h4>
+              <ol
+                style="margin: 0; padding-left: 20px; font-size: 0.8rem; line-height: 1.6; color: var(--text-secondary);">
+                <li>Go to <strong>GitHub Settings</strong> → <strong>Developer Settings</strong>.</li>
+                <li>Select <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong>.</li>
+                <li>Click <strong>Generate new token (classic)</strong>.</li>
+                <li>Give it a name (e.g., "DevDocs-Sync").</li>
+                <li>Select the <strong>'repo'</strong> scope (Full control of private repositories).</li>
+                <li>Scroll down, click <strong>Generate token</strong>, and copy it immediately!</li>
+              </ol>
+              <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 10px; line-height: 1.4;">
+                <em><strong>Tip:</strong> This token acts like a password for this specific repo. It allows DevDocs to
+                  sync your data even on new machines or VMs.</em>
+              </p>
+            </div>
           </section>
 
           <section class="manual-section">

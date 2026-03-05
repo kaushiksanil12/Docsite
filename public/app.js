@@ -410,9 +410,21 @@
     const openManualBtn = $('#open-manual');
     const closeManualBtn = $('#btn-close-manual');
 
-    openManualBtn.addEventListener('click', () => {
+    function openManualTo(sectionId) {
         manualPanel.classList.remove('hidden');
-    });
+        if (sectionId) {
+            const section = $(`#${sectionId}`);
+            if (section) {
+                setTimeout(() => {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    section.classList.add('highlight-pulse');
+                    setTimeout(() => section.classList.remove('highlight-pulse'), 3000);
+                }, 100);
+            }
+        }
+    }
+
+    openManualBtn.addEventListener('click', () => openManualTo());
 
     closeManualBtn.addEventListener('click', () => {
         manualPanel.classList.add('hidden');
@@ -421,6 +433,15 @@
     manualPanel.addEventListener('click', (e) => {
         if (e.target === manualPanel) manualPanel.classList.add('hidden');
     });
+
+    const linkLearnPat = $('#link-learn-pat');
+    if (linkLearnPat) {
+        linkLearnPat.addEventListener('click', (e) => {
+            e.preventDefault();
+            syncPanel.classList.add('hidden');
+            openManualTo('manual-pat-instructions');
+        });
+    }
 
     // ─── Editor ──────────────────────────────────────────────────
     function enterEditor() {
