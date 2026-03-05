@@ -1554,6 +1554,14 @@ kbd {
   border-color: var(--accent);
 }
 
+.sync-field-hint {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
 .sync-toggle-label {
   display: flex !important;
   align-items: center;

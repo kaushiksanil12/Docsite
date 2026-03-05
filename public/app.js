@@ -817,7 +817,6 @@
     const btnOpenSync = $('#btn-open-sync');
     const btnCloseSync = $('#btn-close-sync');
     const syncRemoteInput = $('#sync-remote-url');
-    const syncEnabledCheckbox = $('#sync-enabled');
     const btnSaveSync = $('#btn-save-sync');
     const btnTriggerSync = $('#btn-trigger-sync');
     const syncStatusText = $('#sync-status-text');
@@ -825,13 +824,31 @@
     const syncErrorRow = $('#sync-error-row');
     const syncErrorText = $('#sync-error-text');
     const syncStatusDot = $('#sync-status-dot');
+    const syncPanelTitle = $('#sync-panel-title');
+    const syncDescText = $('#sync-desc-text');
+    const syncStatusBox = $('#sync-status-box');
 
-    async function loadSyncStatus() {
-        const data = await api('/api/sync/status');
+    function updateSyncUI(data) {
         if (data.remoteUrl) syncRemoteInput.value = data.remoteUrl;
-        syncEnabledCheckbox.checked = data.enabled;
 
-        // Update status display
+        const isConnected = data.enabled && data.remoteUrl;
+
+        // Update panel appearance based on state
+        if (isConnected) {
+            syncPanelTitle.textContent = '🔄 Sync Connected';
+            syncDescText.innerHTML = 'Your docs auto-sync to <strong>' + data.remoteUrl.replace(/https?:\/\/github\.com\//, '').replace('.git', '') + '</strong>. Change the URL below to switch repos.';
+            btnSaveSync.textContent = '💾 Update';
+            btnTriggerSync.classList.remove('hidden');
+            syncStatusBox.classList.remove('hidden');
+        } else {
+            syncPanelTitle.textContent = '🔄 Connect Your Data Repo';
+            syncDescText.innerHTML = 'Create a <strong>new empty GitHub repo</strong> for your docs, then paste the URL below. Your notes and images will auto-sync there — separate from the app code.';
+            btnSaveSync.textContent = '🔗 Connect & Sync';
+            btnTriggerSync.classList.add('hidden');
+            syncStatusBox.classList.add('hidden');
+        }
+
+        // Status display
         const statusMap = {
             idle: '⏸️ Idle',
             syncing: '🔄 Syncing...',
@@ -851,11 +868,17 @@
             syncErrorRow.classList.add('hidden');
         }
 
-        // Dot color
+        // Sidebar dot color
         syncStatusDot.className = 'sync-dot';
-        if (data.enabled && data.status === 'success') syncStatusDot.classList.add('active');
+        if (isConnected && data.status === 'success') syncStatusDot.classList.add('active');
         else if (data.status === 'syncing') syncStatusDot.classList.add('syncing');
         else if (data.status === 'error') syncStatusDot.classList.add('error');
+    }
+
+    async function loadSyncStatus() {
+        const data = await api('/api/sync/status');
+        updateSyncUI(data);
+        return data;
     }
 
     btnOpenSync.addEventListener('click', async () => {
@@ -871,19 +894,25 @@
         if (e.target === syncPanel) syncPanel.classList.add('hidden');
     });
 
+    // Save = auto-enable sync when URL is provided
     btnSaveSync.addEventListener('click', async () => {
+        const url = syncRemoteInput.value.trim();
+        if (!url) {
+            toast('Please enter a GitHub repo URL', 'error');
+            return;
+        }
         const res = await api('/api/sync/configure', {
             method: 'POST',
             body: JSON.stringify({
-                enabled: syncEnabledCheckbox.checked,
-                remoteUrl: syncRemoteInput.value.trim(),
+                enabled: true, // Always auto-enable when saving
+                remoteUrl: url,
             }),
         });
         if (res.success) {
-            toast('Sync settings saved');
+            toast('Connected! Auto-sync enabled');
             await loadSyncStatus();
         } else {
-            toast(res.error || 'Failed to save', 'error');
+            toast(res.error || 'Failed to connect', 'error');
         }
     });
 
@@ -891,7 +920,6 @@
         const res = await api('/api/sync/trigger', { method: 'POST' });
         if (res.success) {
             toast('Sync triggered');
-            // Poll status after a short delay
             setTimeout(loadSyncStatus, 3000);
         } else {
             toast(res.error || 'Sync not configured', 'error');
@@ -904,5 +932,13 @@
     // ─── Init ────────────────────────────────────────────────────
     loadTree();
     updateTrashCount();
+
+    // Auto-show sync setup if no repo is configured yet
+    (async () => {
+        const syncData = await loadSyncStatus();
+        if (!syncData.remoteUrl) {
+            syncPanel.classList.remove('hidden');
+        }
+    })();
 
 })();

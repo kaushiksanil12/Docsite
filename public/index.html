@@ -51,35 +51,30 @@
     </div>
   </aside>
 
-  <!-- Sync Settings Panel -->
+  <!-- Sync Setup / Settings Panel -->
   <div id="sync-panel" class="sync-overlay hidden">
     <div class="sync-box">
       <div class="sync-header">
-        <h2>🔄 GitHub Auto-Sync</h2>
+        <h2 id="sync-panel-title">🔄 Connect Your Data Repo</h2>
         <button id="btn-close-sync" class="tool-btn" title="Close">✕</button>
       </div>
       <div class="sync-content">
-        <p class="sync-desc">Your docs and images are saved to a <strong>separate GitHub repo</strong> — not this app's
-          codebase. Fork this app, configure your own repo below, and your personal data stays yours.</p>
+        <p class="sync-desc" id="sync-desc-text">Create a <strong>new empty GitHub repo</strong> for your docs, then
+          paste the URL below. Your notes and images will auto-sync there — separate from the app code.</p>
 
         <div class="sync-field">
           <label for="sync-remote-url">GitHub Repository URL</label>
-          <input type="text" id="sync-remote-url" placeholder="https://github.com/user/repo.git" autocomplete="off">
-        </div>
-
-        <div class="sync-field">
-          <label class="sync-toggle-label">
-            <input type="checkbox" id="sync-enabled">
-            <span class="sync-toggle-text">Enable auto-sync</span>
-          </label>
+          <input type="text" id="sync-remote-url" placeholder="https://github.com/yourname/my-docs.git"
+            autocomplete="off">
+          <span class="sync-field-hint">Use HTTPS or SSH (e.g. git@github.com:user/repo.git)</span>
         </div>
 
         <div class="sync-actions">
-          <button id="btn-save-sync" class="action-btn primary">💾 Save Settings</button>
-          <button id="btn-trigger-sync" class="action-btn">⚡ Sync Now</button>
+          <button id="btn-save-sync" class="action-btn primary">🔗 Connect &amp; Sync</button>
+          <button id="btn-trigger-sync" class="action-btn hidden">⚡ Sync Now</button>
         </div>
 
-        <div id="sync-status-box" class="sync-status-box">
+        <div id="sync-status-box" class="sync-status-box hidden">
           <div class="sync-status-row">
             <span class="sync-label">Status:</span>
             <span id="sync-status-text" class="sync-value">—</span>
