@@ -151,6 +151,22 @@ function writeTrashMeta(meta) {
 }
 
 /**
+ * Safely move a file or folder across devices (EXDEV fallback)
+ */
+function safeMoveSync(oldPath, newPath) {
+  try {
+    fs.renameSync(oldPath, newPath);
+  } catch (err) {
+    if (err.code === 'EXDEV') {
+      fs.cpSync(oldPath, newPath, { recursive: true });
+      fs.rmSync(oldPath, { recursive: true, force: true });
+    } else {
+      throw err;
+    }
+  }
+}
+
+/**
  * Build a tree structure from a directory
  */
 function buildTree(dir, base = '') {
@@ -359,13 +375,13 @@ app.delete('/api/doc/*', (req, res) => {
       const imgSrc = path.join(UPLOADS_DIR, img);
       const imgDest = path.join(TRASH_UPLOADS_DIR, `${timestamp}_${img}`);
       if (fs.existsSync(imgSrc)) {
-        fs.renameSync(imgSrc, imgDest);
+        safeMoveSync(imgSrc, imgDest);
         trashedImages.push({ original: img, trashed: `${timestamp}_${img}` });
       }
     }
 
     // Move the doc/folder to trash
-    fs.renameSync(fullPath, trashDocPath);
+    safeMoveSync(fullPath, trashDocPath);
 
     // Save metadata
     const meta = readTrashMeta();
@@ -429,14 +445,14 @@ app.post('/api/trash/restore', (req, res) => {
     }
 
     // Restore the doc/folder
-    fs.renameSync(trashDocPath, finalPath);
+    safeMoveSync(trashDocPath, finalPath);
 
     // Restore images
     for (const img of (item.images || [])) {
       const imgTrash = path.join(TRASH_UPLOADS_DIR, img.trashed);
       const imgRestore = path.join(UPLOADS_DIR, img.original);
       if (fs.existsSync(imgTrash)) {
-        fs.renameSync(imgTrash, imgRestore);
+        safeMoveSync(imgTrash, imgRestore);
       }
     }
 
@@ -549,7 +565,7 @@ app.post('/api/rename', (req, res) => {
     if (!fs.existsSync(parentDir)) {
       fs.mkdirSync(parentDir, { recursive: true });
     }
-    fs.renameSync(fullOld, fullNew);
+    safeMoveSync(fullOld, fullNew);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to rename' });
