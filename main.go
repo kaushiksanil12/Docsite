@@ -52,19 +52,16 @@ func main() {
 	}
 	sync.SetConfiguration(config)
 
+	// Start Scheduler (it now handles nil managers and waits for config)
+	duration, _ := time.ParseDuration(SYNC_INTERVAL)
+	scheduler := sync.NewScheduler(&gitManager, duration)
+	scheduler.Start()
+
 	if config.RemoteURL != "" {
 		gitManager = sync.NewGitManager(config.RemoteURL, DOCS_DIR)
 		if err := gitManager.Initialize(); err != nil {
 			log.Printf("Git Sync Initialization Error: %v", err)
 		}
-
-		duration, err := time.ParseDuration(SYNC_INTERVAL)
-		if err != nil {
-			log.Printf("Invalid SYNC_INTERVAL '%s', using default 5m", SYNC_INTERVAL)
-			duration = 5 * time.Minute
-		}
-		scheduler := sync.NewScheduler(gitManager, duration)
-		scheduler.Start()
 	}
 
 	r := chi.NewRouter()

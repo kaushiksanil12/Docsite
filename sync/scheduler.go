@@ -32,7 +32,7 @@ func (s *Scheduler) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				if *s.GitPtr != nil {
+				if *s.GitPtr != nil && GetConfiguration().Enabled {
 					if err := (*s.GitPtr).Sync(); err != nil {
 						log.Printf("Git Sync Error: %v", err)
 					}

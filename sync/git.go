@@ -138,9 +138,15 @@ func (g *GitManager) Pull() error {
 	setStatus("syncing", nil)
 	log.Println("Git Sync: Pulling latest changes...")
 
-	// Default to main or master
-	err := g.pullFromBranch("main")
-	if err != nil && !isNewRepoError(err) {
+	// Detect branch
+	branch, _ := g.getCurrentBranch()
+	if branch == "" || branch == "HEAD" {
+		branch = "main" // fallback
+	}
+
+	err := g.pullFromBranch(branch)
+	if err != nil && branch == "main" {
+		// try master if main failed and we were guessing
 		err = g.pullFromBranch("master")
 	}
 
@@ -181,34 +187,54 @@ func (g *GitManager) getAuthenticatedURL() string {
 
 // Sync performs the full add-commit-push-pull cycle
 func (g *GitManager) Sync() error {
-	if !GetConfiguration().Enabled {
-		return nil
-	}
-
 	setStatus("syncing", nil)
 	log.Println("Git Sync: Starting sync cycle...")
 
-	// 1. Add (use -A to include all changes, ignore error if nothing changed)
-	if _, err := g.runCommand("add", "-A"); err != nil {
-		// Log but don't fail if add has issues (might be partially ignored)
-		log.Printf("Git Sync: Add Warning: %v", err)
+	// 1. Add (use -A to include all changes)
+	out, err := g.runCommand("add", "-A")
+	if err != nil {
+		log.Printf("Git Sync: Add Warning: %v (Output: %s)", err, out)
 	}
 
 	// 2. Commit (ignore error if nothing to commit)
-	_, _ = g.runCommand("commit", "-m", "Auto-sync from DevDocs (Go)")
+	out, err = g.runCommand("commit", "-m", "Auto-sync from DevDocs (Go)")
+	if err != nil {
+		// Only log commit info, don't fail sync if nothing to commit
+		log.Printf("Git Sync: Commit info: %v (Output: %s)", err, out)
+	}
+
+	// Detect current branch
+	branch, err := g.getCurrentBranch()
+	if err != nil {
+		branch = "main" // fallback
+	}
 
 	// 3. Push
 	u := g.getAuthenticatedURL()
-	if _, err := g.runCommand("push", u, "main"); err != nil {
-		_, _ = g.runCommand("push", u, "master")
+	log.Printf("Git Sync: Pushing to remote branch %s...", branch)
+	out, err = g.runCommand("push", u, branch)
+	if err != nil {
+		log.Printf("Git Sync: Push failed: %v (Output: %s)", err, out)
+		setStatus("error", fmt.Errorf("git push %s failed: %v", branch, err))
+		return err
 	}
 
 	// 4. Pull
-	err := g.Pull()
+	log.Println("Git Sync: Pulling after push...")
+	err = g.Pull()
 	if err != nil {
-		setStatus("error", err)
-	} else {
-		setStatus("success", nil)
+		// Pull handles its own status
+		return err
 	}
-	return err
+
+	setStatus("success", nil)
+	return nil
+}
+
+func (g *GitManager) getCurrentBranch() (string, error) {
+	out, err := g.runCommand("rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(out), nil
 }
