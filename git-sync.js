@@ -107,6 +107,28 @@ function setRemoteUrl(url, pat) {
         } else {
             gitExec(`remote add origin "${authUrl}"`);
         }
+
+        // Handle case where .data-repo was just recreated but remote has history
+        try {
+            gitExec('log -1');
+        } catch {
+            // No local commits means we just initialized this repo
+            console.log('  ⏳ Linking remote history to new data repo...');
+            try {
+                gitExec('fetch origin');
+                try {
+                    gitExec('reset --mixed origin/main');
+                    gitExec('branch -m main');
+                } catch {
+                    try {
+                        gitExec('reset --mixed origin/master');
+                        gitExec('branch -m master');
+                    } catch { }
+                }
+            } catch (err) {
+                // Ignore if remote is empty or unreachable
+            }
+        }
         return true;
     } catch (err) {
         console.error('  ❌ Failed to set remote:', err.message);
@@ -200,16 +222,49 @@ async function performSync() {
         // Push (async to avoid blocking the server)
         exec('git push -u origin HEAD', { cwd: DATA_REPO_DIR, timeout: 60000 }, (err) => {
             if (err) {
-                console.error('  ❌ Git push failed:', err.message);
-                lastSyncStatus = 'error';
-                lastSyncError = err.message;
+                if (err.message.includes('rejected') || err.message.includes('fetch first')) {
+                    console.log('  ⚠️ Push rejected. Attempting to pull remote changes...');
+                    exec('git pull --rebase origin main || git pull --rebase origin master || git pull --rebase origin HEAD', { cwd: DATA_REPO_DIR, timeout: 60000 }, (pullErr) => {
+                        if (pullErr) {
+                            console.error('  ❌ Auto-merge failed:', pullErr.message);
+                            lastSyncStatus = 'error';
+                            lastSyncError = pullErr.message;
+                            isSyncing = false;
+                        } else {
+                            exec('git push -u origin HEAD', { cwd: DATA_REPO_DIR, timeout: 60000 }, (pushErr) => {
+                                if (pushErr) {
+                                    console.error('  ❌ Retry git push failed:', pushErr.message);
+                                    lastSyncStatus = 'error';
+                                    lastSyncError = pushErr.message;
+                                } else {
+                                    console.log('  ✅ Auto-synced docs to GitHub (after merge)');
+                                    lastSyncStatus = 'success';
+                                    lastSyncError = '';
+                                    lastSyncTime = new Date().toISOString();
+
+                                    // Sync merged changes back to local folders
+                                    try {
+                                        copyDirSync(path.join(DATA_REPO_DIR, 'docs'), path.resolve('./docs'));
+                                        copyDirSync(path.join(DATA_REPO_DIR, 'uploads'), path.resolve('./uploads'));
+                                    } catch (e) { }
+                                }
+                                isSyncing = false;
+                            });
+                        }
+                    });
+                } else {
+                    console.error('  ❌ Git push failed:', err.message);
+                    lastSyncStatus = 'error';
+                    lastSyncError = err.message;
+                    isSyncing = false;
+                }
             } else {
                 console.log('  ✅ Auto-synced docs to GitHub');
                 lastSyncStatus = 'success';
                 lastSyncError = '';
                 lastSyncTime = new Date().toISOString();
+                isSyncing = false;
             }
-            isSyncing = false;
         });
     } catch (err) {
         console.error('  ❌ Auto-sync failed:', err.message);
