@@ -10,6 +10,8 @@ services:
       - ./docs:/app/docs
       - ./uploads:/app/uploads
       - ./trash:/app/trash
+      - ./config:/app/config
+      - ./.data-repo:/app/.data-repo
     environment:
       - NODE_ENV=production
       - PORT=3100

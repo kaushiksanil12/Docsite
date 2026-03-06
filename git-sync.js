@@ -16,7 +16,7 @@ const { execSync, exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const SYNC_CONFIG_FILE = path.resolve('./.sync-config.json');
+const SYNC_CONFIG_FILE = path.resolve('./config/.sync-config.json');
 const DATA_REPO_DIR = path.resolve('./.data-repo');
 const DEBOUNCE_MS = 30000; // 30 seconds after last change
 
@@ -45,6 +45,9 @@ function loadConfig() {
 }
 
 function saveConfig() {
+    const dir = path.dirname(SYNC_CONFIG_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
     fs.writeFileSync(SYNC_CONFIG_FILE, JSON.stringify({
         enabled: syncEnabled,
         remoteUrl: remoteUrl,
@@ -66,16 +69,17 @@ function isDataRepoInit() {
 }
 
 function ensureDataRepo() {
+    // Always configure git user and mark repo as safe (needed every time container starts)
+    try {
+        execSync(`git config --global --add safe.directory "*"`, { timeout: 10000 });
+        gitExec('config user.name "DevDocs Auto-Sync"');
+        gitExec('config user.email "devdocs@local"');
+    } catch (e) { console.error('  ⚠️ Git init global config error:', e.message); }
+
     if (!isDataRepoInit()) {
         // Create the data repo directory and init a fresh git repo inside it
         fs.mkdirSync(DATA_REPO_DIR, { recursive: true });
         execSync('git init', { cwd: DATA_REPO_DIR, encoding: 'utf-8', timeout: 10000 });
-
-        // Configure git user for the data repo
-        try {
-            gitExec('config user.name "DevDocs Auto-Sync"');
-            gitExec('config user.email "devdocs@local"');
-        } catch { /* ignore */ }
 
         console.log('  📦 Initialized data repo (.data-repo)');
     }
@@ -184,7 +188,7 @@ function getAllFiles(dir) {
 // ─── Sync Logic ───────────────────────────────────────────────────
 async function performSync() {
     if (isSyncing) return;
-    if (!syncEnabled || !remoteUrl) return;
+    if (!remoteUrl) return;
 
     isSyncing = true;
     lastSyncStatus = 'syncing';
@@ -367,7 +371,7 @@ function init(watchDirs) {
 }
 
 function triggerSync() {
-    if (!syncEnabled || !remoteUrl) {
+    if (!remoteUrl) {
         return { success: false, error: 'Sync not configured' };
     }
     performSync();

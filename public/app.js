@@ -870,6 +870,7 @@
     const btnCloseSync = $('#btn-close-sync');
     const syncRemoteInput = $('#sync-remote-url');
     const syncPatInput = $('#sync-pat');
+    const syncAutoInput = $('#sync-auto');
     const btnSaveSync = $('#btn-save-sync');
     const btnTriggerSync = $('#btn-trigger-sync');
     const btnPullSync = $('#btn-pull-sync');
@@ -891,20 +892,21 @@
             syncPatInput.value = ''; // Don't expose original token
         }
 
-        const isConnected = data.enabled && data.remoteUrl;
+        const isConnected = !!data.remoteUrl;
+        syncAutoInput.checked = data.enabled;
 
         // Update panel appearance based on state
         if (isConnected) {
-            syncPanelTitle.textContent = '🔄 Sync Connected';
-            syncDescText.innerHTML = 'Your docs auto-sync to <strong>' + data.remoteUrl.replace(/https?:\/\/github\.com\//, '').replace('.git', '') + '</strong>. Change the URL below to switch repos.';
+            syncPanelTitle.textContent = '🔄 Sync Settings';
+            syncDescText.innerHTML = `Connected to <strong>${data.remoteUrl.replace(/https?:\/\/github\.com\//, '').replace('.git', '')}</strong>. Change the URL below to switch repos.`;
             btnSaveSync.textContent = '💾 Update Settings';
             btnTriggerSync.classList.remove('hidden');
             btnPullSync.classList.remove('hidden');
             syncStatusBox.classList.remove('hidden');
         } else {
             syncPanelTitle.textContent = '🔄 Connect Your Data Repo';
-            syncDescText.innerHTML = 'Create a <strong>new empty GitHub repo</strong> for your docs, then paste the URL below. Your notes and images will auto-sync there — separate from the app code.';
-            btnSaveSync.textContent = '🔗 Connect & Sync';
+            syncDescText.innerHTML = 'Create a <strong>new empty GitHub repo</strong> for your docs, then paste the URL below.';
+            btnSaveSync.textContent = '🔗 Connect & Save';
             btnTriggerSync.classList.add('hidden');
             btnPullSync.classList.add('hidden');
             syncStatusBox.classList.add('hidden');
@@ -932,7 +934,11 @@
 
         // Sidebar dot color
         syncStatusDot.className = 'sync-dot';
-        if (isConnected && data.status === 'success') syncStatusDot.classList.add('active');
+        if (isConnected && data.status === 'success') {
+            syncStatusDot.classList.add('active');
+            if (!data.enabled) syncStatusDot.style.background = 'var(--text-muted)'; // Gray for manual sync success
+            else syncStatusDot.style.background = ''; // reset to green
+        }
         else if (data.status === 'syncing') syncStatusDot.classList.add('syncing');
         else if (data.status === 'error') syncStatusDot.classList.add('error');
     }
@@ -967,7 +973,7 @@
         }
 
         const payload = {
-            enabled: true,
+            enabled: syncAutoInput.checked,
             remoteUrl: url,
         };
         // Only send PAT if user typed a new one, else keep existing
@@ -986,7 +992,7 @@
         btnSaveSync.disabled = false;
 
         if (res.success) {
-            toast('Connected! Auto-sync enabled');
+            toast(syncAutoInput.checked ? 'Settings saved. Auto-sync enabled.' : 'Settings saved. Manual sync mode.');
             syncPatInput.value = ''; // clear input for security
             await loadSyncStatus();
         } else {
