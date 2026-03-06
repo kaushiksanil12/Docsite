@@ -1,9 +1,32 @@
+# Node.js
 node_modules/
+*.log
+.DS_Store
+
+# DevDocs Data (Local)
 docs/
 uploads/
 trash/
 .data-repo/
+
+# Config & Environment
 .env
 .sync-config.json
-*.log
-.DS_Store
+config/.sync-config.json
+
+# Go
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test outputs
+*.test
+*.out
+cover.out
+
+# Go modules
+go.sum
