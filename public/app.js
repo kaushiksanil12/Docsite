@@ -79,7 +79,7 @@
 
             if (item.type === 'folder') {
                 el.innerHTML = `
-          <div class="tree-label" data-path="${item.path}" data-type="folder" style="padding-left:${10 + depth * 14}px">
+          <div class="tree-label drop-zone" draggable="true" data-path="${item.path}" data-type="folder" style="padding-left:${10 + depth * 14}px">
             <span class="tree-toggle open">▶</span>
             <span class="tree-icon">📁</span>
             <span class="tree-name">${item.name}</span>
@@ -117,6 +117,12 @@
                     deleteTreeItem(item.path, 'folder');
                 });
 
+                // Drag and Drop for folder (drop zone)
+                label.addEventListener('dragstart', handleDragStart);
+                label.addEventListener('dragover', handleDragOver);
+                label.addEventListener('dragleave', handleDragLeave);
+                label.addEventListener('drop', handleDrop);
+
                 // Context menu
                 label.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
@@ -125,7 +131,7 @@
 
             } else {
                 el.innerHTML = `
-          <div class="tree-label" data-path="${item.path}" data-type="file" style="padding-left:${10 + depth * 14}px">
+          <div class="tree-label drop-zone" draggable="true" data-path="${item.path}" data-type="file" style="padding-left:${10 + depth * 14}px">
             <span class="tree-icon">📄</span>
             <span class="tree-name">${item.name}</span>
             <span class="tree-actions">
@@ -142,6 +148,13 @@
                     e.stopPropagation();
                     deleteTreeItem(item.path, 'file');
                 });
+
+                // Drag and Drop for file (draggable)
+                label.addEventListener('dragstart', handleDragStart);
+                // Also allow dropping onto a file to just place it in the same parent folder
+                label.addEventListener('dragover', handleDragOver);
+                label.addEventListener('dragleave', handleDragLeave);
+                label.addEventListener('drop', handleDrop);
                 label.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     showContextMenu(e.clientX, e.clientY, item.path, 'file');
@@ -149,6 +162,122 @@
             }
 
             container.appendChild(el);
+        }
+    }
+
+    // ─── Drag and Drop Handlers ──────────────────────────────────
+    function handleDragStart(e) {
+        // e.target is the .tree-label
+        const path = e.target.dataset.path;
+        if (!path) return;
+        e.dataTransfer.setData('text/plain', path);
+        e.dataTransfer.effectAllowed = 'move';
+
+        // Slight visual cue for the item being dragged
+        setTimeout(() => e.target.style.opacity = '0.5', 0);
+
+        // Clean up visual cue once drag ends
+        e.target.addEventListener('dragend', () => e.target.style.opacity = '1', { once: true });
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+        const label = e.currentTarget;
+        if (!label.classList.contains('drag-over')) {
+            label.classList.add('drag-over');
+            label.style.background = 'var(--bg-tertiary)';
+            label.style.outline = '1px solid var(--accent)';
+        }
+    }
+
+    function handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const label = e.currentTarget;
+        label.classList.remove('drag-over');
+        label.style.background = '';
+        label.style.outline = '';
+    }
+
+    async function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const label = e.currentTarget;
+        label.classList.remove('drag-over');
+        label.style.background = '';
+        label.style.outline = '';
+
+        const sourcePath = e.dataTransfer.getData('text/plain');
+        if (!sourcePath) return;
+
+        const targetPathAttr = label.dataset.path; // the item dropped onto
+        const targetType = label.dataset.type;
+
+        // If target was root, we would handle differently. Here the drop was ON a label.
+        // If they drop on a folder, target folder is that folder.
+        // If they drop on a file, target folder is the file's parent folder.
+        let targetFolder = '';
+        if (targetPathAttr) {
+            targetFolder = targetType === 'folder'
+                ? targetPathAttr
+                : targetPathAttr.substring(0, targetPathAttr.lastIndexOf('/'));
+        }
+
+        await processMove(sourcePath, targetFolder);
+    }
+
+    // Support dropping onto the root area (the empty space in fileTree)
+    fileTree.addEventListener('dragover', (e) => {
+        // Only accept if we're not over a specific tree label (handled by label's dragover)
+        if (e.target.closest('.tree-label')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+
+    fileTree.addEventListener('drop', async (e) => {
+        if (e.target.closest('.tree-label')) return;
+        e.preventDefault();
+        const sourcePath = e.dataTransfer.getData('text/plain');
+        if (!sourcePath) return;
+
+        // Root drop
+        await processMove(sourcePath, '');
+    });
+
+    async function processMove(sourcePath, targetFolder) {
+        const itemName = sourcePath.split('/').pop();
+        const sourceFolder = sourcePath.includes('/')
+            ? sourcePath.substring(0, sourcePath.lastIndexOf('/'))
+            : '';
+
+        // Prevent dropping onto itself or its existing parent
+        if (sourcePath === targetFolder || sourceFolder === targetFolder) return;
+
+        // Prevent dropping a folder into its own children
+        if (targetFolder.startsWith(sourcePath + '/')) {
+            toast('Cannot move folder into itself', 'error');
+            return;
+        }
+
+        const newPath = targetFolder ? `${targetFolder}/${itemName}` : itemName;
+
+        const res = await api('/api/rename', {
+            method: 'POST',
+            body: JSON.stringify({ oldPath: sourcePath, newPath }),
+        });
+
+        if (res.success) {
+            // Update currentDoc reference if the active file was moved
+            if (currentDoc === sourcePath) currentDoc = newPath;
+            else if (currentDoc && currentDoc.startsWith(sourcePath + '/')) {
+                currentDoc = currentDoc.replace(sourcePath, newPath);
+            }
+            await loadTree();
+        } else {
+            toast(res.error || 'Failed to move', 'error');
         }
     }
 
