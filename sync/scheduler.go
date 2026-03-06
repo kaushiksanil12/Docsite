@@ -7,18 +7,18 @@ import (
 
 // Scheduler handles periodic sync tasks
 type Scheduler struct {
-	Git      *GitManager
+	GitPtr   **GitManager
 	Interval time.Duration
 	stop     chan struct{}
 }
 
 // NewScheduler creates a new background scheduler
-func NewScheduler(git *GitManager, interval time.Duration) *Scheduler {
+func NewScheduler(git **GitManager, interval time.Duration) *Scheduler {
 	if interval < 1*time.Minute {
 		interval = 5 * time.Minute // Default to 5 mins if too short
 	}
 	return &Scheduler{
-		Git:      git,
+		GitPtr:   git,
 		Interval: interval,
 		stop:     make(chan struct{}),
 	}
@@ -32,8 +32,10 @@ func (s *Scheduler) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				if err := s.Git.Sync(); err != nil {
-					log.Printf("Git Sync Error: %v", err)
+				if *s.GitPtr != nil {
+					if err := (*s.GitPtr).Sync(); err != nil {
+						log.Printf("Git Sync Error: %v", err)
+					}
 				}
 			case <-s.stop:
 				ticker.Stop()

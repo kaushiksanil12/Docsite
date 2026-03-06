@@ -13,6 +13,9 @@ services:
       - ./config:/app/config
       - ./.data-repo:/app/.data-repo
     environment:
-      - NODE_ENV=production
       - PORT=3100
+      - DOCS_DIR=/app/docs
+      - UPLOADS_DIR=/app/uploads
+      - GIT_REPO_URL=
+      - SYNC_INTERVAL=5m
     restart: unless-stopped

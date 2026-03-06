@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,18 +22,17 @@ var (
 	TRASH_DIR       = "./trash"
 	TRASH_META_FILE = filepath.Join(TRASH_DIR, "meta.json")
 
-	GIT_REPO_URL  = getEnv("GIT_REPO_URL", "")
-	SYNC_INTERVAL = getEnv("SYNC_INTERVAL", "5m")
+	SYNC_INTERVAL    = getEnv("SYNC_INTERVAL", "5m")
+	SYNC_CONFIG_FILE = filepath.Join("config", "sync.json")
 )
 
 func main() {
-	// Ensure directories exist
-	dirs := []string{DOCS_DIR, UPLOADS_DIR, filepath.Join(TRASH_DIR, "docs"), filepath.Join(TRASH_DIR, "uploads")}
-	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Fatalf("Failed to create directory %s: %v", dir, err)
-		}
-	}
+	// Pre-requisites
+	os.MkdirAll(DOCS_DIR, 0755)
+	os.MkdirAll(UPLOADS_DIR, 0755)
+	os.MkdirAll(filepath.Join(TRASH_DIR, "docs"), 0755)
+	os.MkdirAll(filepath.Join(TRASH_DIR, "uploads"), 0755)
+
 	// Ensure trash meta file exists
 	if _, err := os.Stat(TRASH_META_FILE); os.IsNotExist(err) {
 		os.WriteFile(TRASH_META_FILE, []byte("[]"), 0644)
@@ -40,8 +40,20 @@ func main() {
 
 	// Initialize Git Sync
 	var gitManager *sync.GitManager
-	if GIT_REPO_URL != "" {
-		gitManager = sync.NewGitManager(GIT_REPO_URL, DOCS_DIR)
+	handlers.SetConfigPath(SYNC_CONFIG_FILE)
+
+	// Load config from file or env
+	var config sync.SyncConfig
+	if data, err := os.ReadFile(SYNC_CONFIG_FILE); err == nil {
+		json.Unmarshal(data, &config)
+	} else if gitRepoURL := getEnv("GIT_REPO_URL", ""); gitRepoURL != "" {
+		config.RemoteURL = gitRepoURL
+		config.Enabled = true
+	}
+	sync.SetConfiguration(config)
+
+	if config.RemoteURL != "" {
+		gitManager = sync.NewGitManager(config.RemoteURL, DOCS_DIR)
 		if err := gitManager.Initialize(); err != nil {
 			log.Printf("Git Sync Initialization Error: %v", err)
 		}
@@ -88,9 +100,9 @@ func main() {
 
 		// Sync routes
 		r.Get("/sync/status", handlers.GetSyncStatus())
-		if gitManager != nil {
-			r.Post("/sync", handlers.TriggerSync(gitManager))
-		}
+		r.Post("/sync/configure", handlers.ConfigureSync(&gitManager, DOCS_DIR))
+		r.Post("/sync/trigger", handlers.TriggerSync(&gitManager))
+		r.Post("/sync/pull", handlers.PullSync(&gitManager))
 	})
 
 	// Static files
