@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -28,26 +29,45 @@ func GetSyncStatus() http.HandlerFunc {
 // ConfigureSync updates the Git synchronization settings
 func ConfigureSync(git **sync.GitManager, docsDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var newConfig sync.SyncConfig
-		if err := json.NewDecoder(r.Body).Decode(&newConfig); err != nil {
+		var update sync.SyncConfig
+		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+			log.Printf("Sync Config Decode Error: %v", err)
 			http.Error(w, `{"error":"Invalid configuration"}`, http.StatusBadRequest)
 			return
 		}
 
-		sync.SetConfiguration(newConfig)
+		currentConfig := sync.GetConfiguration()
+		log.Printf("Sync Config: Current state: %+v, Received update: %+v", currentConfig, update)
+
+		// Logic: Merge settings.
+		// If PAT is provided, use it. Else keep old one.
+		if update.PAT != "" {
+			currentConfig.PAT = update.PAT
+		}
+
+		// If URL changed, we'll re-init
+		urlChanged := update.RemoteURL != currentConfig.RemoteURL
+
+		currentConfig.RemoteURL = update.RemoteURL
+		currentConfig.Enabled = update.Enabled
+
+		sync.SetConfiguration(currentConfig)
 
 		// Persist to file
 		os.MkdirAll(filepath.Dir(configPath), 0755)
-		data, _ := json.MarshalIndent(newConfig, "", "  ")
-		os.WriteFile(configPath, data, 0644)
+		data, _ := json.MarshalIndent(currentConfig, "", "  ")
+		if err := os.WriteFile(configPath, data, 0644); err != nil {
+			log.Printf("Failed to save sync config: %v", err)
+		}
 
-		// Re-initialize GitManager if URL changed
-		if newConfig.RemoteURL != "" {
-			*git = sync.NewGitManager(newConfig.RemoteURL, docsDir)
+		// Re-initialize GitManager if URL changed or if it was never initialized
+		if currentConfig.RemoteURL != "" && (urlChanged || *git == nil) {
+			*git = sync.NewGitManager(currentConfig.RemoteURL, docsDir)
 			if err := (*git).Initialize(); err != nil {
-				// We don't return error here because we want to save the settings anyway
-				// The status will reflect the error
+				log.Printf("Git Sync Initialization Error: %v", err)
 			}
+		} else if currentConfig.RemoteURL == "" {
+			*git = nil // Clear if URL was removed
 		}
 
 		w.Header().Set("Content-Type", "application/json")

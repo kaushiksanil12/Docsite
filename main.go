@@ -57,6 +57,7 @@ func main() {
 	scheduler := sync.NewScheduler(&gitManager, duration)
 	scheduler.Start()
 
+	// Initialize manager if we have a URL from file or env
 	if config.RemoteURL != "" {
 		gitManager = sync.NewGitManager(config.RemoteURL, DOCS_DIR)
 		if err := gitManager.Initialize(); err != nil {
