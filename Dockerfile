@@ -42,4 +42,9 @@ RUN addgroup -g 1001 -S devdocs && adduser -S devdocs -u 1001 -G devdocs
 RUN chown -R devdocs:devdocs /app
 USER devdocs
 
+# Trust all directories for git to prevent dubious ownership errors
+RUN git config --global --add safe.directory '*'
+RUN git config --global user.email "devdocs@auto.sync"
+RUN git config --global user.name "DevDocs AutoSync"
+
 CMD ["./main"]
