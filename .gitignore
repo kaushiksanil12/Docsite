@@ -6,7 +6,9 @@ node_modules/
 # DevDocs Data (Local)
 docs/
 uploads/
+# Trash and configs
 trash/
+config/sync.json
 .data-repo/
 
 # Config & Environment
