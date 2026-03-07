@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   devdocs:
     build: .
     container_name: devdocs
     ports:
-      - "3100:3100"
+      - "3100:3000"
     volumes:
       - ./docs:/app/docs
       - ./uploads:/app/uploads
@@ -13,7 +11,7 @@ services:
       - ./config:/app/config
       - ./.data-repo:/app/.data-repo
     environment:
-      - PORT=3100
+      - PORT=3000
       - DOCS_DIR=/app/docs
       - UPLOADS_DIR=/app/uploads
       - GIT_REPO_URL=
