@@ -51,13 +51,29 @@ func safeMove(oldPath, newPath string) error {
 }
 
 func copyMove(oldPath, newPath string) error {
-	src, err := os.Open(oldPath)
+	info, err := os.Stat(oldPath)
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return copyDir(oldPath, newPath)
+	}
+	return copyFile(oldPath, newPath)
+}
+
+func copyFile(srcFile, dstFile string) error {
+	src, err := os.Open(srcFile)
 	if err != nil {
 		return err
 	}
 	defer src.Close()
 
-	dst, err := os.Create(newPath)
+	info, err := src.Stat()
+	if err != nil {
+		return err
+	}
+
+	dst, err := os.OpenFile(dstFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
 	if err != nil {
 		return err
 	}
@@ -66,8 +82,39 @@ func copyMove(oldPath, newPath string) error {
 	if _, err = io.Copy(dst, src); err != nil {
 		return err
 	}
+	return os.Remove(srcFile)
+}
 
-	return os.RemoveAll(oldPath)
+func copyDir(srcDir, dstDir string) error {
+	info, err := os.Stat(srcDir)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(dstDir, info.Mode()); err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(srcDir)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(srcDir, entry.Name())
+		dstPath := filepath.Join(dstDir, entry.Name())
+
+		if entry.IsDir() {
+			if err := copyDir(srcPath, dstPath); err != nil {
+				return err
+			}
+		} else {
+			if err := copyFile(srcPath, dstPath); err != nil {
+				return err
+			}
+		}
+	}
+	return os.RemoveAll(srcDir)
 }
 
 // collectImagesFromDir recursively finds /uploads/ references in all .md files in a dir
