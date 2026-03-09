@@ -522,12 +522,32 @@
         const modified = new Date(data.lastModified).toLocaleString();
         docContent.innerHTML = `<div class="doc-meta">Last modified: ${modified}</div>` + data.html;
 
-        // Apply syntax highlighting to code blocks in viewer
-        if (window.hljs) {
-            docContent.querySelectorAll('pre code').forEach(block => {
+        // Apply syntax highlighting and copy button to code blocks in viewer
+        docContent.querySelectorAll('pre').forEach(pre => {
+            const block = pre.querySelector('code');
+            if (window.hljs && block) {
                 hljs.highlightElement(block);
+            }
+
+            // Add Copy Button
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = 'Copy';
+            btn.title = 'Copy code to clipboard';
+
+            btn.addEventListener('click', () => {
+                const text = block ? block.innerText : pre.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = 'Copy';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => console.error('Failed to copy: ', err));
             });
-        }
+            pre.appendChild(btn);
+        });
 
         // Store raw for editor
         editor.dataset.raw = data.raw;
