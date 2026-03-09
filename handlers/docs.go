@@ -16,7 +16,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/yuin/goldmark"
-	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
@@ -50,9 +49,6 @@ type SearchResult struct {
 var md = goldmark.New(
 	goldmark.WithExtensions(
 		extension.GFM,
-		highlighting.NewHighlighting(
-			highlighting.WithStyle("github"),
-		),
 	),
 	goldmark.WithParserOptions(
 		parser.WithAutoHeadingID(),

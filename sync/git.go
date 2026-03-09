@@ -108,7 +108,9 @@ func (g *GitManager) Initialize() error {
 	// We avoid 'rev-parse' because it might find a parent repository
 	gitDir := filepath.Join(g.TargetDir, ".git")
 	if _, err := os.Stat(gitDir); err == nil {
-		log.Println("Git Sync: Repository already initialized at target.")
+		log.Println("Git Sync: Repository already initialized at target. Updating remote URL...")
+		// Update the remote URL in case the user changed it in the UI
+		g.runCommand("remote", "set-url", "origin", g.RepoURL)
 		return g.Pull()
 	}
 
@@ -124,6 +126,9 @@ func (g *GitManager) Initialize() error {
 	if _, err := g.runCommand("init"); err != nil {
 		return err
 	}
+	// Force the default branch to be 'main' to prevent master/main split
+	g.runCommand("branch", "-M", "main")
+
 	if _, err := g.runCommand("remote", "add", "origin", g.RepoURL); err != nil {
 		// Might already exist if we're retrying
 		g.runCommand("remote", "set-url", "origin", g.RepoURL)
@@ -145,10 +150,7 @@ func (g *GitManager) Pull() error {
 	}
 
 	err := g.pullFromBranch(branch)
-	if err != nil && branch == "main" {
-		// try master if main failed and we were guessing
-		err = g.pullFromBranch("master")
-	}
+	// If the initial pull fails because 'main' doesn't exist remotely yet, that's fine (new repo)
 
 	if err != nil && !isNewRepoError(err) {
 		setStatus("error", err)
@@ -172,7 +174,8 @@ func isNewRepoError(err error) bool {
 
 func (g *GitManager) pullFromBranch(branch string) error {
 	u := g.getAuthenticatedURL()
-	_, err := g.runCommand("pull", u, branch)
+	// Add --allow-unrelated-histories so local markdown files can safely merge with a newly linked, non-empty remote repository
+	_, err := g.runCommand("pull", u, branch, "--allow-unrelated-histories")
 	return err
 }
 
@@ -212,7 +215,7 @@ func (g *GitManager) Sync() error {
 	// 3. Push
 	u := g.getAuthenticatedURL()
 	log.Printf("Git Sync: Pushing to remote branch %s...", branch)
-	out, err = g.runCommand("push", u, branch)
+	out, err = g.runCommand("push", "-u", u, branch)
 	if err != nil {
 		log.Printf("Git Sync: Push failed: %v (Output: %s)", err, out)
 		setStatus("error", fmt.Errorf("git push %s failed: %v", branch, err))

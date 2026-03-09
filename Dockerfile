@@ -46,5 +46,6 @@ USER devdocs
 RUN git config --global --add safe.directory '*'
 RUN git config --global user.email "devdocs@auto.sync"
 RUN git config --global user.name "DevDocs AutoSync"
+RUN git config --global pull.rebase false
 
 CMD ["./main"]
