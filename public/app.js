@@ -67,9 +67,14 @@
 
     // ─── Load Tree ───────────────────────────────────────────────
     async function loadTree() {
+        const scrollTop = fileTree.scrollTop;
         tree = await api('/api/tree');
         renderTree(tree, fileTree);
+        fileTree.scrollTop = scrollTop;
     }
+
+    // Keep track of which folders are open
+    let openFolders = new Set();
 
     function renderTree(items, container, depth = 0) {
         container.innerHTML = '';
@@ -78,9 +83,11 @@
             el.className = 'tree-item';
 
             if (item.type === 'folder') {
+                const isOpen = openFolders.has(item.path);
+
                 el.innerHTML = `
           <div class="tree-label drop-zone" draggable="true" data-path="${item.path}" data-type="folder" style="padding-left:${10 + depth * 14}px">
-            <span class="tree-toggle open">▶</span>
+            <span class="tree-toggle ${isOpen ? 'open' : ''}">▶</span>
             <span class="tree-icon">📁</span>
             <span class="tree-name">${item.name}</span>
             <span class="tree-actions">
@@ -89,7 +96,7 @@
               <button class="tree-action-btn delete-btn" data-action="delete-item" title="Delete folder">🗑️</button>
             </span>
           </div>
-          <div class="tree-children"></div>
+          <div class="tree-children" style="display: ${isOpen ? '' : 'none'}"></div>
         `;
                 const childrenContainer = el.querySelector('.tree-children');
                 renderTree(item.children || [], childrenContainer, depth + 1);
@@ -100,7 +107,14 @@
                 label.addEventListener('click', (e) => {
                     if (e.target.closest('.tree-action-btn')) return;
                     toggle.classList.toggle('open');
-                    childrenContainer.style.display = toggle.classList.contains('open') ? '' : 'none';
+
+                    if (toggle.classList.contains('open')) {
+                        openFolders.add(item.path);
+                        childrenContainer.style.display = '';
+                    } else {
+                        openFolders.delete(item.path);
+                        childrenContainer.style.display = 'none';
+                    }
                 });
 
                 // Inline action buttons
@@ -340,7 +354,11 @@
         input.placeholder = type === 'folder' ? 'Folder name...' : 'filename.md';
         wrapper.appendChild(input);
         container.prepend(wrapper);
-        input.focus();
+
+        // Preserve scroll manually as preventScroll isn't supported uniformly in older browsers or has buggy edge cases.
+        const treeScroll = fileTree.scrollTop;
+        input.focus({ preventScroll: true });
+        fileTree.scrollTop = treeScroll;
 
         const commit = async () => {
             let name = input.value.trim();
