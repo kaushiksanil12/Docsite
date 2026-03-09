@@ -380,7 +380,7 @@
                     toast(res.error || 'Failed', 'error');
                 }
             } else {
-                const res = await api(`/api/doc/${fullPath}`, {
+                const res = await api(`/api/doc/${fullPath}?isNew=true`, {
                     method: 'POST',
                     body: JSON.stringify({ content: `# ${name.replace('.md', '')}\n\nStart writing here...\n` }),
                 });
@@ -442,7 +442,7 @@
                 if (!name) return;
                 const fn = name.endsWith('.md') ? name : name + '.md';
                 const fullPath = `${path}/${fn}`;
-                const res = await api(`/api/doc/${fullPath}`, {
+                const res = await api(`/api/doc/${fullPath}?isNew=true`, {
                     method: 'POST',
                     body: JSON.stringify({ content: `# ${fn.replace('.md', '')}\n\n` }),
                 });

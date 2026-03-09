@@ -136,9 +136,17 @@ func SaveDoc(docsDir, uploadsDir string) http.HandlerFunc {
 			return
 		}
 
-		// Handle orphaned images
+		// Handle file overwriting logic
+		isNew := r.URL.Query().Get("isNew") == "true"
 		var oldImages []string
+
 		if _, err := os.Stat(fullPath); err == nil {
+			if isNew {
+				http.Error(w, `{"error":"File already exists"}`, http.StatusConflict)
+				return
+			}
+
+			// Exists and it is an edit
 			oldContent, _ := os.ReadFile(fullPath)
 			oldImages = ExtractImagePaths(string(oldContent))
 		}

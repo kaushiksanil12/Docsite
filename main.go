@@ -181,6 +181,9 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 			pathPrefix = pathPrefix[:len(pathPrefix)-1]
 		}
 
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
 		fs.ServeHTTP(w, r)
 	})
