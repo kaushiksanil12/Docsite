@@ -90,6 +90,7 @@ func NewGitManager(repoURL, targetDir string) *GitManager {
 func (g *GitManager) runCommand(args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.TargetDir
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return string(output), fmt.Errorf("git %s failed: %w (output: %s)", strings.Join(args, " "), err, string(output))
@@ -138,6 +139,19 @@ func (g *GitManager) Initialize() error {
 	return nil
 }
 
+// EnsureHasCommit ensures that at least one commit exists in the repository
+func (g *GitManager) EnsureHasCommit() error {
+	// Check if any commit exists
+	_, err := g.runCommand("rev-parse", "HEAD")
+	if err == nil {
+		return nil // Already has commits
+	}
+
+	log.Println("Git Sync: No commits found. Creating initial empty commit...")
+	_, err = g.runCommand("commit", "--allow-empty", "-m", "Initial commit from DevDocs")
+	return err
+}
+
 // Pull performs a git pull
 func (g *GitManager) Pull() error {
 	setStatus("syncing", nil)
@@ -184,8 +198,20 @@ func (g *GitManager) getAuthenticatedURL() string {
 	if config.PAT == "" || !strings.HasPrefix(config.RemoteURL, "https://") {
 		return "origin"
 	}
-	// Inject PAT: https://pat@github.com/user/repo.git
-	return strings.Replace(config.RemoteURL, "https://", "https://"+config.PAT+"@", 1)
+	
+	// Use x-access-token for GitHub to avoid password prompts
+	// Inject PAT: https://x-access-token:pat@github.com/user/repo.git
+	authPrefix := "https://x-access-token:" + config.PAT + "@"
+	u := strings.Replace(config.RemoteURL, "https://", authPrefix, 1)
+	
+	// Log a masked version for debugging
+	maskedPAT := config.PAT
+	if len(maskedPAT) > 8 {
+		maskedPAT = maskedPAT[:4] + "..." + maskedPAT[len(maskedPAT)-4:]
+	}
+	log.Printf("Git Sync: Using authenticated URL (masked PAT: %s)", maskedPAT)
+	
+	return u
 }
 
 // Sync performs the full add-commit-push-pull cycle
@@ -208,9 +234,12 @@ func (g *GitManager) Sync() error {
 
 	// Detect current branch
 	branch, err := g.getCurrentBranch()
-	if err != nil {
+	if err != nil || branch == "" || branch == "HEAD" {
 		branch = "main" // fallback
 	}
+
+	// 2.5 Ensure we have something to push
+	g.EnsureHasCommit()
 
 	// 3. Push
 	u := g.getAuthenticatedURL()
