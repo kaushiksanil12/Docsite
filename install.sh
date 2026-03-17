@@ -33,9 +33,17 @@ else
 fi
 
 # 3. Stop and Remove old container if exists
+# Check by name
 if [ "$(docker ps -aq -f name=devdocs)" ]; then
-    echo -e "${YELLOW}🔄 Removing old container...${NC}"
+    echo -e "${YELLOW}🔄 Removing existing 'devdocs' container...${NC}"
     docker rm -f devdocs
+fi
+
+# Check if anything is already listening on port 3100
+CONFLICTING_CONTAINER=$(docker ps -q -f "publish=3100")
+if [ -n "$CONFLICTING_CONTAINER" ]; then
+    echo -e "${YELLOW}⚠️  Container $CONFLICTING_CONTAINER is already using port 3100. Stopping it...${NC}"
+    docker stop "$CONFLICTING_CONTAINER"
 fi
 
 # 4. Run the Container with Named Volumes
@@ -46,12 +54,12 @@ docker run -d \
   --restart unless-stopped \
   -v devdocs-config:/app/config \
   -v devdocs-docs:/app/docs \
-  -v devdocs-uploads:/app/uploads \
+  -v devdocs-uploads:/app/docs/uploads \
   "$IMAGE_NAME"
 
 # 5. Set up Alias
 # This alias is smart: it tries to start the container if it exists, otherwise it creates it.
-ALIAS_CMD="alias devdocs='docker start devdocs 2>/dev/null || docker run -d -p 3100:3000 --name devdocs --restart unless-stopped -v devdocs-config:/app/config -v devdocs-docs:/app/docs -v devdocs-uploads:/app/uploads $IMAGE_NAME'"
+ALIAS_CMD="alias devdocs='docker inspect -f {{.State.Running}} devdocs 2>/dev/null | grep -q true && echo \"🌐 DevDocs is already running at http://localhost:3100\" || (docker start devdocs 2>/dev/null || docker run -d -p 3100:3000 --name devdocs --restart unless-stopped -v devdocs-config:/app/config -v devdocs-docs:/app/docs -v devdocs-uploads:/app/docs/uploads $IMAGE_NAME) && echo \"🚀 DevDocs started at http://localhost:3100\"'"
 
 # Detect Shell Profile
 PROFILE=""

@@ -28,7 +28,7 @@ COPY --from=builder /app/main .
 COPY public/ ./public/
 
 # Create data directories
-RUN mkdir -p /app/docs /app/uploads /app/trash/docs /app/trash/uploads
+RUN mkdir -p /app/docs/uploads /app/config /app/trash/docs /app/trash/uploads
 
 # Expose port (Internal Go port)
 EXPOSE 3000

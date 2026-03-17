@@ -21,7 +21,7 @@ import (
 var (
 	PORT            = getEnv("PORT", "3000")
 	DOCS_DIR        = getEnv("DOCS_DIR", "./docs")
-	UPLOADS_DIR     = getEnv("UPLOADS_DIR", "./uploads")
+	UPLOADS_DIR     = getEnv("UPLOADS_DIR", filepath.Join(DOCS_DIR, "uploads"))
 	TRASH_DIR       = "./trash"
 	TRASH_META_FILE = filepath.Join(TRASH_DIR, "meta.json")
 
@@ -33,6 +33,7 @@ func main() {
 	// Pre-requisites
 	os.MkdirAll(DOCS_DIR, 0755)
 	os.MkdirAll(UPLOADS_DIR, 0755)
+	os.MkdirAll(filepath.Dir(SYNC_CONFIG_FILE), 0755)
 	os.MkdirAll(filepath.Join(TRASH_DIR, "docs"), 0755)
 	os.MkdirAll(filepath.Join(TRASH_DIR, "uploads"), 0755)
 
