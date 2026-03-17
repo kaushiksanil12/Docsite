@@ -33,4 +33,4 @@ Access your documentation at [http://localhost:3100](http://localhost:3100).
 Once running, you can configure your **Git Repo URL** and **Personal Access Token (PAT)** directly in the web UI. Your settings are persisted in a Docker volume, making it easy to move between machines.
 
 ---
-Built with ❤️ by Kaushik.
+
