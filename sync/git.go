@@ -214,10 +214,22 @@ func (g *GitManager) getAuthenticatedURL() string {
 	return u
 }
 
+// ensureDataGitignore writes a .gitignore appropriate for the data repo.
+// The data repo may inherit the source-code .gitignore which excludes
+// "uploads/" — that prevents images from being pushed to GitHub.
+func (g *GitManager) ensureDataGitignore() {
+	gitignorePath := filepath.Join(g.TargetDir, ".gitignore")
+	content := "# DevDocs data repo\n.DS_Store\n*.log\n"
+	os.WriteFile(gitignorePath, []byte(content), 0644)
+}
+
 // Sync performs the full add-commit-push-pull cycle
 func (g *GitManager) Sync() error {
 	setStatus("syncing", nil)
 	log.Println("Git Sync: Starting sync cycle...")
+
+	// 0. Fix .gitignore so uploads/ are NOT excluded
+	g.ensureDataGitignore()
 
 	// 1. Add (use -A to include all changes)
 	out, err := g.runCommand("add", "-A")

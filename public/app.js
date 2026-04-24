@@ -751,7 +751,12 @@
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success) {
-            insertAtCursor(`![${file.name}](${data.url})`);
+            let imgUrl = data.url;
+            if (currentDoc) {
+                const slashes = (currentDoc.match(/\//g) || []).length;
+                imgUrl = (slashes === 0 ? '' : '../'.repeat(slashes)) + data.url.replace(/^\//, '');
+            }
+            insertAtCursor(`![${file.name}](${imgUrl})`);
             toast('Image uploaded');
         } else {
             toast(data.error || 'Upload failed', 'error');
