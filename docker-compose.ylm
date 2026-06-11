@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  devdocs:
+    image: kaushik678/docsite:latest
+    container_name: devdocs
+    restart: unless-stopped
+    ports:
+      - "3100:3000"
+    volumes:
+      - devdocs-config:/app/config
+      - devdocs-docs:/app/docs
+      - devdocs-uploads:/app/docs/uploads
+
+volumes:
+  devdocs-config:
+  devdocs-docs:
+  devdocs-uploads:
