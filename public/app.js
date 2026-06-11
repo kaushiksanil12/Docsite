@@ -11,6 +11,25 @@
     let tree = [];
     let contextTarget = null;  // path for context menu
 
+    // ─── SVG Icons ───────────────────────────────────────────────
+    const Icons = {
+        moon: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>',
+        sun: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+        folder: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
+        file: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>',
+        addFile: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>',
+        addFolder: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>',
+        trash: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
+        chevron: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
+        home: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+        close: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+        restore: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
+        check: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+        sync: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>',
+        error: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+        idle: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>'
+    };
+
     // ─── DOM refs ────────────────────────────────────────────────
     const $ = (sel) => document.querySelector(sel);
     const sidebar = $('#sidebar');
@@ -88,13 +107,13 @@
 
                 el.innerHTML = `
           <div class="tree-label drop-zone" draggable="true" data-path="${item.path}" data-type="folder" style="padding-left:${10 + depth * 14}px">
-            <span class="tree-toggle ${isOpen ? 'open' : ''}">▶</span>
-            <span class="tree-icon">📁</span>
+            <span class="tree-toggle ${isOpen ? 'open' : ''}">${Icons.chevron}</span>
+            <span class="tree-icon">${Icons.folder}</span>
             <span class="tree-name">${item.name}</span>
             <span class="tree-actions">
-              <button class="tree-action-btn" data-action="add-file" title="New file">📄</button>
-              <button class="tree-action-btn" data-action="add-folder" title="New folder">📁+</button>
-              <button class="tree-action-btn delete-btn" data-action="delete-item" title="Delete folder">🗑️</button>
+              <button class="tree-action-btn" data-action="add-file" title="New file">${Icons.addFile}</button>
+              <button class="tree-action-btn" data-action="add-folder" title="New folder">${Icons.addFolder}</button>
+              <button class="tree-action-btn delete-btn" data-action="delete-item" title="Delete folder">${Icons.trash}</button>
             </span>
           </div>
           <div class="tree-children" style="display: ${isOpen ? '' : 'none'}"></div>
@@ -147,10 +166,10 @@
             } else {
                 el.innerHTML = `
           <div class="tree-label drop-zone" draggable="true" data-path="${item.path}" data-type="file" style="padding-left:${10 + depth * 14}px">
-            <span class="tree-icon">📄</span>
+            <span class="tree-icon">${Icons.file}</span>
             <span class="tree-name">${item.name}</span>
             <span class="tree-actions">
-              <button class="tree-action-btn delete-btn" data-action="delete-item" title="Delete file">🗑️</button>
+              <button class="tree-action-btn delete-btn" data-action="delete-item" title="Delete file">${Icons.trash}</button>
             </span>
           </div>
         `;
@@ -320,10 +339,10 @@
     const confirmOk = $('#confirm-ok');
     const confirmCancelBtn = $('#confirm-cancel');
 
-    function showConfirm(message, okLabel = '🗑️ Delete', okClass = 'danger-solid') {
+    function showConfirm(message, okLabelHtml = `${Icons.trash} Delete`, okClass = 'danger-solid') {
         return new Promise((resolve) => {
             confirmMessage.textContent = message;
-            confirmOk.textContent = okLabel;
+            confirmOk.innerHTML = okLabelHtml;
 
             // Reset classes and apply new one
             confirmOk.className = 'tool-btn ' + okClass;
@@ -556,7 +575,7 @@
 
     function renderBreadcrumbs(filePath) {
         const parts = filePath.replace('.md', '').split('/');
-        breadcrumbs.innerHTML = `<a class="breadcrumb-link" onclick="window.__showWelcome()">🏠 Home</a>`;
+        breadcrumbs.innerHTML = `<a class="breadcrumb-link" onclick="window.__showWelcome()"><span style="display:flex;align-items:center;gap:6px;">${Icons.home} Home</span></a>`;
         parts.forEach((part, i) => {
             breadcrumbs.innerHTML += `<span class="breadcrumb-sep">/</span>`;
             if (i === parts.length - 1) {
@@ -912,10 +931,10 @@
     function applyTheme(theme) {
         if (theme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
-            themeToggle.textContent = '🌙'; // Click to go dark
+            themeToggle.innerHTML = Icons.moon; // Click to go dark
         } else {
             document.documentElement.removeAttribute('data-theme');
-            themeToggle.textContent = '☀️'; // Click to go light
+            themeToggle.innerHTML = Icons.sun; // Click to go light
         }
     }
 
@@ -990,7 +1009,7 @@
         trashList.innerHTML = '';
 
         if (!items.length) {
-            trashList.innerHTML = '<div class="trash-empty-msg">🗑️ Trash is empty</div>';
+            trashList.innerHTML = `<div class="trash-empty-msg" style="display:flex;align-items:center;gap:8px;justify-content:center;">${Icons.trash} Trash is empty</div>`;
             btnEmptyTrash.classList.add('hidden');
             return;
         }
@@ -1003,7 +1022,7 @@
         for (const item of items) {
             const el = document.createElement('div');
             el.className = 'trash-item';
-            const icon = item.type === 'folder' ? '📁' : '📄';
+            const icon = item.type === 'folder' ? Icons.folder : Icons.file;
             const deletedDate = new Date(item.deletedAt).toLocaleString();
             const imgCount = (item.images || []).length;
             const imgInfo = imgCount > 0 ? ` · ${imgCount} image${imgCount > 1 ? 's' : ''}` : '';
@@ -1015,8 +1034,8 @@
                     <div class="trash-item-meta">Deleted ${deletedDate}${imgInfo}</div>
                 </div>
                 <div class="trash-item-actions">
-                    <button class="trash-restore-btn" title="Restore">↩ Restore</button>
-                    <button class="trash-delete-btn" title="Delete permanently">✕</button>
+                    <button class="trash-restore-btn" title="Restore"><span style="display:flex;align-items:center;gap:4px;">${Icons.restore} Restore</span></button>
+                    <button class="trash-delete-btn" title="Delete permanently">${Icons.close}</button>
                 </div>
             `;
 
@@ -1105,16 +1124,16 @@
 
         // Update panel appearance based on state
         if (isConnected) {
-            syncPanelTitle.textContent = '🔄 Sync Settings';
+            syncPanelTitle.innerHTML = `<span style="display:flex;align-items:center;gap:8px;">${Icons.sync} Sync Settings</span>`;
             syncDescText.innerHTML = `Connected to <strong>${data.remoteUrl.replace(/https?:\/\/github\.com\//, '').replace('.git', '')}</strong>. Change the URL below to switch repos.`;
-            btnSaveSync.textContent = '💾 Update Settings';
+            btnSaveSync.innerHTML = `<span style="display:flex;align-items:center;gap:6px;">${Icons.check} Update Settings</span>`;
             btnTriggerSync.classList.remove('hidden');
             btnPullSync.classList.remove('hidden');
             syncStatusBox.classList.remove('hidden');
         } else {
-            syncPanelTitle.textContent = '🔄 Connect Your Data Repo';
+            syncPanelTitle.innerHTML = `<span style="display:flex;align-items:center;gap:8px;">${Icons.sync} Connect Your Data Repo</span>`;
             syncDescText.innerHTML = 'Create a <strong>new empty GitHub repo</strong> for your docs, then paste the URL below.';
-            btnSaveSync.textContent = '🔗 Connect & Save';
+            btnSaveSync.innerHTML = `<span style="display:flex;align-items:center;gap:6px;">${Icons.check} Connect & Save</span>`;
             btnTriggerSync.classList.add('hidden');
             btnPullSync.classList.add('hidden');
             syncStatusBox.classList.add('hidden');
@@ -1122,12 +1141,12 @@
 
         // Status display
         const statusMap = {
-            idle: '⏸️ Idle',
-            syncing: '🔄 Syncing...',
-            success: '✅ Synced',
-            error: '❌ Error',
+            idle: `<span class="sync-status-icon">${Icons.idle}</span> Idle`,
+            syncing: `<span class="sync-status-icon sync-spin">${Icons.sync}</span> Syncing...`,
+            success: `<span class="sync-status-icon sync-success">${Icons.check}</span> Synced`,
+            error: `<span class="sync-status-icon sync-error">${Icons.error}</span> Error`,
         };
-        syncStatusText.textContent = statusMap[data.status] || data.status;
+        syncStatusText.innerHTML = statusMap[data.status] || data.status;
         syncLastTime.textContent = data.lastSync
             ? new Date(data.lastSync).toLocaleString()
             : 'Never';
@@ -1212,13 +1231,13 @@
     btnPullSync.addEventListener('click', async () => {
         const ok = await showConfirm(
             'Sync & Pull from Remote? This will try to save your new files to GitHub first, then fetch all remote changes.',
-            '📥 Pull & Overwrite',
+            `<span style="display:flex;align-items:center;gap:6px;">${Icons.check} Pull & Overwrite</span>`,
             'primary'
         );
         if (!ok) return;
 
         btnPullSync.disabled = true;
-        btnPullSync.textContent = '📥 Pulling...';
+        btnPullSync.innerHTML = `<span style="display:flex;align-items:center;gap:6px;">${Icons.sync} Pulling...</span>`;
 
         try {
             const res = await api('/api/sync/pull', { method: 'POST' });
@@ -1235,7 +1254,7 @@
             await loadSyncStatus();
         } finally {
             btnPullSync.disabled = false;
-            btnPullSync.textContent = '📥 Pull from Remote';
+            btnPullSync.innerHTML = `<span style="display:flex;align-items:center;gap:6px;">${Icons.sync} Pull from Remote</span>`;
         }
     });
 

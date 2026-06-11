@@ -19,27 +19,27 @@
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
       <div class="logo">
-        <span class="logo-icon">📖</span>
+        <span class="logo-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
         <span class="logo-text">Docsite</span>
       </div>
       <div style="display: flex; gap: 4px; align-items: center;">
-        <button id="theme-toggle" class="icon-btn" title="Toggle Light/Dark Mode">☀️</button>
-        <button id="sidebar-toggle" class="icon-btn" title="Toggle sidebar">☰</button>
+        <button id="theme-toggle" class="icon-btn" title="Toggle Light/Dark Mode"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+        <button id="sidebar-toggle" class="icon-btn" title="Toggle sidebar"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
       </div>
     </div>
 
     <div class="search-box">
       <input type="text" id="search-input" placeholder="Search docs..." autocomplete="off">
-      <span class="search-icon">🔍</span>
+      <span class="search-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
     </div>
     <div id="search-results" class="search-results hidden"></div>
 
     <div class="sidebar-actions">
       <button id="btn-new-folder" class="action-btn" title="New folder">
-        <span>📁</span> New Folder
+        <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span> New Folder
       </button>
       <button id="btn-new-file" class="action-btn" title="New file">
-        <span>📄</span> New File
+        <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span> New File
       </button>
     </div>
 
@@ -47,10 +47,10 @@
 
     <div class="sidebar-trash">
       <button id="btn-open-trash" class="action-btn trash-btn" title="View Trash">
-        <span>🗑️</span> Trash <span id="trash-count" class="trash-count hidden">0</span>
+        <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span> Trash <span id="trash-count" class="trash-count hidden">0</span>
       </button>
       <button id="btn-open-sync" class="action-btn sync-btn" title="Sync Settings">
-        <span>🔄</span> Sync <span id="sync-status-dot" class="sync-dot"></span>
+        <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></span> Sync <span id="sync-status-dot" class="sync-dot"></span>
       </button>
     </div>
   </aside>
@@ -59,8 +59,8 @@
   <div id="sync-panel" class="sync-overlay hidden">
     <div class="sync-box">
       <div class="sync-header">
-        <h2 id="sync-panel-title">🔄 Connect Your Data Repo</h2>
-        <button id="btn-close-sync" class="tool-btn" title="Close">✕</button>
+        <h2 id="sync-panel-title"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Connect Your Data Repo</h2>
+        <button id="btn-close-sync" class="tool-btn" title="Close"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       </div>
       <div class="sync-content">
         <p class="sync-desc" id="sync-desc-text">Create a <strong>new empty GitHub repo</strong> for your docs, then
@@ -86,10 +86,10 @@
         </div>
 
         <div class="sync-actions" style="margin-top: 20px;">
-          <button id="btn-save-sync" class="action-btn primary">💾 Save Settings</button>
-          <button id="btn-trigger-sync" class="action-btn hidden">⚡ Sync Now</button>
+          <button id="btn-save-sync" class="action-btn primary"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Settings</button>
+          <button id="btn-trigger-sync" class="action-btn hidden"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Sync Now</button>
           <button id="btn-pull-sync" class="action-btn hidden"
-            style="background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border);">📥 Pull
+            style="background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border);"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Pull
             from Remote</button>
         </div>
 
@@ -112,7 +112,7 @@
   </div>
 
   <!-- Floating toggle (visible when sidebar is collapsed) -->
-  <button id="sidebar-float-toggle" class="sidebar-float-toggle">☰</button>
+  <button id="sidebar-float-toggle" class="sidebar-float-toggle"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
 
   <!-- Main Content -->
   <main id="main" class="main">
@@ -121,48 +121,48 @@
 
     <!-- Toolbar -->
     <div id="toolbar" class="toolbar hidden">
-      <button id="btn-edit" class="tool-btn" title="Edit (Ctrl+E)">✏️ Edit</button>
-      <button id="btn-save" class="tool-btn primary hidden" title="Save (Ctrl+S)">💾 Save</button>
-      <button id="btn-cancel" class="tool-btn hidden" title="Cancel (Esc)">✖ Cancel</button>
-      <button id="btn-upload" class="tool-btn hidden" title="Upload image">🖼️ Image</button>
-      <button id="btn-download-pdf" class="tool-btn" title="Download as PDF">📥 PDF</button>
-      <button id="btn-delete-doc" class="tool-btn danger" title="Delete this document">🗑️ Delete</button>
+      <button id="btn-edit" class="tool-btn" title="Edit (Ctrl+E)"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</button>
+      <button id="btn-save" class="tool-btn primary hidden" title="Save (Ctrl+S)"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save</button>
+      <button id="btn-cancel" class="tool-btn hidden" title="Cancel (Esc)"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Cancel</button>
+      <button id="btn-upload" class="tool-btn hidden" title="Upload image"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image</button>
+      <button id="btn-download-pdf" class="tool-btn" title="Download as PDF"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> PDF</button>
+      <button id="btn-delete-doc" class="tool-btn danger" title="Delete this document"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete</button>
       <input type="file" id="image-upload-input" accept="image/*" class="hidden">
     </div>
 
     <!-- Welcome Screen -->
     <div id="welcome" class="welcome">
       <div class="welcome-content">
-        <h1>📖 Welcome to Docsite</h1>
+        <h1><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> Welcome to Docsite</h1>
         <p>Your personal documentation tool.</p>
         <div class="welcome-grid">
           <div class="welcome-card">
-            <span class="card-icon">📁</span>
+            <span class="card-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span>
             <h3>Organize</h3>
             <p>Create folders and files to structure your docs</p>
           </div>
           <div class="welcome-card">
-            <span class="card-icon">✍️</span>
+            <span class="card-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></span>
             <h3>Write</h3>
             <p>Write in Markdown with live preview</p>
           </div>
           <div class="welcome-card">
-            <span class="card-icon">🖼️</span>
+            <span class="card-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></span>
             <h3>Screenshots</h3>
             <p>Drag, drop, or paste images directly</p>
           </div>
           <div class="welcome-card">
-            <span class="card-icon">🔍</span>
+            <span class="card-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
             <h3>Search</h3>
             <p>Find anything across all your docs</p>
           </div>
           <div class="welcome-card manual-card" id="open-manual">
-            <span class="card-icon">📘</span>
+            <span class="card-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
             <h3>Manual</h3>
             <p>View all features, commands &amp; tips</p>
           </div>
           <div class="welcome-card">
-            <span class="card-icon">🗑️</span>
+            <span class="card-icon"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
             <h3>Trash &amp; Restore</h3>
             <p>Deleted files go to trash for recovery</p>
           </div>
@@ -183,13 +183,13 @@
     <div id="manual-panel" class="manual-overlay hidden">
       <div class="manual-box">
         <div class="manual-header">
-          <h2>📘 Docsite Manual</h2>
-          <button id="btn-close-manual" class="tool-btn" title="Close">✕</button>
+          <h2><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> Docsite Manual</h2>
+          <button id="btn-close-manual" class="tool-btn" title="Close"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <div class="manual-content">
 
           <section class="manual-section">
-            <h3>📁 File &amp; Folder Management</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> File &amp; Folder Management</h3>
             <table>
               <tr>
                 <th>Action</th>
@@ -197,29 +197,29 @@
               </tr>
               <tr>
                 <td>Create file</td>
-                <td>Click <strong>📄 New File</strong> in sidebar or right-click a folder → New File Here</td>
+                <td>Click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> New File</strong> in sidebar or right-click a folder → New File Here</td>
               </tr>
               <tr>
                 <td>Create folder</td>
-                <td>Click <strong>📁 New Folder</strong> in sidebar or right-click a folder → New Folder Here</td>
+                <td>Click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> New Folder</strong> in sidebar or right-click a folder → New Folder Here</td>
               </tr>
               <tr>
                 <td>Rename</td>
-                <td>Right-click file/folder → ✏️ Rename</td>
+                <td>Right-click file/folder → <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Rename</td>
               </tr>
               <tr>
                 <td>Delete</td>
-                <td>Click 🗑️ on hover, or right-click → Delete (moves to Trash)</td>
+                <td>Click <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> on hover, or right-click → Delete (moves to Trash)</td>
               </tr>
               <tr>
                 <td>Restore</td>
-                <td>Open Trash panel → click ↩ Restore</td>
+                <td>Open Trash panel → click <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Restore</td>
               </tr>
             </table>
           </section>
 
           <section class="manual-section">
-            <h3>✍️ Editing Documents</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Editing Documents</h3>
             <table>
               <tr>
                 <th>Action</th>
@@ -227,15 +227,15 @@
               </tr>
               <tr>
                 <td>Edit a doc</td>
-                <td>Open any file → click <strong>✏️ Edit</strong> or press <kbd>Ctrl+E</kbd></td>
+                <td>Open any file → click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</strong> or press <kbd>Ctrl+E</kbd></td>
               </tr>
               <tr>
                 <td>Save changes</td>
-                <td>Click <strong>💾 Save</strong> or press <kbd>Ctrl+S</kbd></td>
+                <td>Click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save</strong> or press <kbd>Ctrl+S</kbd></td>
               </tr>
               <tr>
                 <td>Cancel editing</td>
-                <td>Click <strong>✖ Cancel</strong> or press <kbd>Esc</kbd></td>
+                <td>Click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Cancel</strong> or press <kbd>Esc</kbd></td>
               </tr>
               <tr>
                 <td>New paragraph</td>
@@ -249,7 +249,7 @@
           </section>
 
           <section class="manual-section">
-            <h3>🖼️ Images</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Images</h3>
             <table>
               <tr>
                 <th>Action</th>
@@ -257,7 +257,7 @@
               </tr>
               <tr>
                 <td>Upload via button</td>
-                <td>While editing, click <strong>🖼️ Image</strong> in toolbar</td>
+                <td>While editing, click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image</strong> in toolbar</td>
               </tr>
               <tr>
                 <td>Drag &amp; drop</td>
@@ -275,7 +275,7 @@
           </section>
 
           <section class="manual-section">
-            <h3>⌨️ Keyboard Shortcuts</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"></path></svg> Keyboard Shortcuts</h3>
             <table>
               <tr>
                 <th>Shortcut</th>
@@ -305,7 +305,7 @@
           </section>
 
           <section class="manual-section">
-            <h3>📝 Markdown Cheat Sheet</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Markdown Cheat Sheet</h3>
             <table>
               <tr>
                 <th>Syntax</th>
@@ -363,20 +363,20 @@
           </section>
 
           <section class="manual-section">
-            <h3>🗑️ Trash &amp; Recovery</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Trash &amp; Recovery</h3>
             <ul>
               <li>Deleted files and folders are moved to <strong>Trash</strong>, not permanently deleted</li>
               <li>Images referenced in deleted files are also moved to trash to keep your storage clean</li>
-              <li>Click <strong>🗑️ Trash</strong> in the sidebar to view/restore/permanently delete items</li>
+              <li>Click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Trash</strong> in the sidebar to view/restore/permanently delete items</li>
               <li>Use <strong>Empty Trash</strong> to permanently remove all trashed items</li>
             </ul>
           </section>
 
           <section class="manual-section" id="manual-git-sync">
-            <h3>🔄 Git Repo Auto-Sync</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Git Repo Auto-Sync</h3>
             <p>Docsite can automatically backup all your documentation to a private GitHub repository.</p>
             <ul>
-              <li>Click <strong>🔄 Sync</strong> at the bottom of the sidebar to open the setup panel.</li>
+              <li>Click <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sync</strong> at the bottom of the sidebar to open the setup panel.</li>
               <li>Create a new empty repository on GitHub and paste the URL.</li>
               <li><strong>Personal Access Token (PAT):</strong> Provide a token from GitHub Settings to allow syncing
                 from any machine without needing to log in to Git locally.</li>
@@ -406,7 +406,7 @@
           </section>
 
           <section class="manual-section">
-            <h3>🎨 Personalization &amp; UX</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="5.5" r="1.5"></circle><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="13.5" cy="18.5" r="1.5"></circle><path d="M21.5 12c0 5.247-4.253 9.5-9.5 9.5A9.5 9.5 0 0 1 2.5 12C2.5 6.753 6.753 2.5 12 2.5c2.617 0 5 1 6.7 2.8C20.5 7.1 21.5 9.5 21.5 12z"></path></svg> Personalization &amp; UX</h3>
             <table>
               <tr>
                 <th>Feature</th>
@@ -414,7 +414,7 @@
               </tr>
               <tr>
                 <td>Theme Toggle</td>
-                <td>Click the <strong>☀️/🌙</strong> icon in the top left to instantly switch between the Black &amp;
+                <td>Click the <strong><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>/<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></strong> icon in the top left to instantly switch between the Black &amp;
                   Green dark mode and the clean Light mode. Your choice is saved automatically.</td>
               </tr>
 
@@ -422,7 +422,7 @@
           </section>
 
           <section class="manual-section">
-            <h3>💡 Code Highlighting</h3>
+            <h3><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1.5.5 2.5 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg> Code Highlighting</h3>
             <p>Use fenced code blocks with a language tag for automatic syntax highlighting:</p>
             <pre><code>```javascript
 const app = express();
@@ -463,7 +463,7 @@ services:
         </div>
       </div>
       <div id="drop-overlay" class="drop-overlay hidden">
-        <div class="drop-message">📎 Drop image here</div>
+        <div class="drop-message"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> Drop image here</div>
       </div>
     </div>
   </main>
@@ -474,7 +474,7 @@ services:
       <p id="confirm-message"></p>
       <div class="confirm-actions">
         <button id="confirm-cancel" class="tool-btn">Cancel</button>
-        <button id="confirm-ok" class="tool-btn danger-solid">🗑️ Delete</button>
+        <button id="confirm-ok" class="tool-btn danger-solid"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete</button>
       </div>
     </div>
   </div>
@@ -483,10 +483,10 @@ services:
   <div id="trash-panel" class="trash-overlay hidden">
     <div class="trash-box">
       <div class="trash-header">
-        <h2>🗑️ Trash</h2>
+        <h2><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Trash</h2>
         <div class="trash-header-actions">
           <button id="btn-empty-trash" class="tool-btn danger-solid" title="Empty all trash">Empty Trash</button>
-          <button id="btn-close-trash" class="tool-btn" title="Close">✕</button>
+          <button id="btn-close-trash" class="tool-btn" title="Close"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
       </div>
       <div id="trash-list" class="trash-list">
@@ -497,11 +497,11 @@ services:
 
   <!-- Context Menu -->
   <div id="context-menu" class="context-menu hidden">
-    <button data-action="new-file">📄 New File Here</button>
-    <button data-action="new-folder">📁 New Folder Here</button>
+    <button data-action="new-file"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> New File Here</button>
+    <button data-action="new-folder"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> New Folder Here</button>
     <div class="menu-divider"></div>
-    <button data-action="rename">✏️ Rename</button>
-    <button data-action="delete" class="danger">🗑️ Delete</button>
+    <button data-action="rename"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Rename</button>
+    <button data-action="delete" class="danger"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete</button>
   </div>
 
   <script src="/app.js?v=3"></script>
