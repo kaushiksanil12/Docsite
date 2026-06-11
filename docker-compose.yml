@@ -8,6 +8,11 @@ services:
     ports:
       - "3100:3000"
     volumes:
-      - ./data/config:/app/config
-      - ./data/docs:/app/docs
-      - ./data/uploads:/app/docs/uploads
+      - docsite-config:/app/config
+      - docsite-docs:/app/docs
+      - docsite-uploads:/app/docs/uploads
+
+volumes:
+  docsite-config:
+  docsite-docs:
+  docsite-uploads:
