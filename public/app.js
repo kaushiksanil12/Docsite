@@ -7,6 +7,8 @@
 
     // ─── State ───────────────────────────────────────────────────
     let currentDoc = null;     // current file path
+    let rawDocData = '';
+    let toastEditor = null;
     let isEditing = false;
     let tree = [];
     let contextTarget = null;  // path for context menu
@@ -42,18 +44,18 @@
     const viewer = $('#viewer');
     const docContent = $('#doc-content');
     const editorPane = $('#editor-pane');
-    const editor = $('#editor');
-    const preview = $('#preview');
-    const dropOverlay = $('#drop-overlay');
+    
+    
+    
     const contextMenu = $('#context-menu');
 
     const btnEdit = $('#btn-edit');
     const btnSave = $('#btn-save');
     const btnCancel = $('#btn-cancel');
-    const btnUpload = $('#btn-upload');
+    
     const btnDownloadPdf = $('#btn-download-pdf');
     const btnDeleteDoc = $('#btn-delete-doc');
-    const imageInput = $('#image-upload-input');
+    
     const btnNewFolder = $('#btn-new-folder');
     const btnNewFile = $('#btn-new-file');
     const sidebarToggle = $('#sidebar-toggle');
@@ -570,7 +572,7 @@
         });
 
         // Store raw for editor
-        editor.dataset.raw = data.raw;
+        rawDocData = data.raw;
     }
 
     function renderBreadcrumbs(filePath) {
@@ -636,88 +638,75 @@
     }
 
     // ─── Editor ──────────────────────────────────────────────────
+    
     function enterEditor() {
         if (!currentDoc) return;
         isEditing = true;
         viewer.classList.add('hidden');
         editorPane.classList.remove('hidden');
-        editor.value = editor.dataset.raw || '';
-        updatePreview();
+
+        if (!toastEditor) {
+            toastEditor = new toastui.Editor({
+                el: document.querySelector('#toast-editor'),
+                height: '100%',
+                initialEditType: 'wysiwyg',
+                previewStyle: 'vertical',
+                theme: getSavedTheme() === 'dark' ? 'dark' : 'light',
+                hooks: {
+                    addImageBlobHook: async (blob, callback) => {
+                        const formData = new FormData();
+                        formData.append('image', blob);
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        if (data.success) {
+                            let imgUrl = data.url;
+                            if (currentDoc) {
+                                const slashes = (currentDoc.match(/\//g) || []).length;
+                                imgUrl = (slashes === 0 ? '' : '../'.repeat(slashes)) + data.url.replace(/^\//, '');
+                            }
+                            callback(imgUrl, blob.name);
+                        } else {
+                            toast(data.error || 'Upload failed', 'error');
+                        }
+                    }
+                }
+            });
+
+            // Move the Markdown/WYSIWYG switch to the top toolbar
+            const modeSwitch = document.querySelector('.toastui-editor-mode-switch');
+            const toolbarContainer = document.getElementById('toolbar');
+            if (modeSwitch && toolbarContainer) {
+                toolbarContainer.appendChild(modeSwitch);
+                modeSwitch.classList.add('mode-switch-moved');
+            }
+        }
+        
+        // Ensure theme matches
+        const isDark = getSavedTheme() === 'dark';
+        const editorEl = document.querySelector('#toast-editor .toastui-editor-defaultUI');
+        if (editorEl) {
+            if (isDark) editorEl.classList.add('toastui-editor-dark');
+            else editorEl.classList.remove('toastui-editor-dark');
+        }
+
+        toastEditor.setMarkdown(rawDocData || '');
 
         btnEdit.classList.add('hidden');
         btnSave.classList.remove('hidden');
         btnCancel.classList.remove('hidden');
-        btnUpload.classList.remove('hidden');
+        if(typeof btnUpload !== 'undefined' && btnUpload) btnUpload.classList.add('hidden');
         btnDownloadPdf.classList.add('hidden');
         btnDeleteDoc.classList.add('hidden');
     }
-
-    function exitEditor() {
+function exitEditor() {
         isEditing = false;
         editorPane.classList.add('hidden');
         btnEdit.classList.remove('hidden');
         btnSave.classList.add('hidden');
         btnCancel.classList.add('hidden');
-        btnUpload.classList.add('hidden');
         btnDownloadPdf.classList.remove('hidden');
         btnDeleteDoc.classList.remove('hidden');
     }
-
-    function updatePreview() {
-        preview.innerHTML = marked.parse(editor.value);
-        // Apply syntax highlighting to code blocks in preview
-        if (window.hljs) {
-            preview.querySelectorAll('pre code').forEach(block => {
-                hljs.highlightElement(block);
-            });
-        }
-    }
-
-    // Wire up marked on client side — we load it from CDN
-    // The server renders for viewing, but for live preview we need client-side marked
-    let markedReady = false;
-    const markedScript = document.createElement('script');
-    markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-    markedScript.onload = () => { markedReady = true; };
-    document.head.appendChild(markedScript);
-
-    // Also load highlight.js for client-side use
-    const hlScript = document.createElement('script');
-    hlScript.src = 'https://cdn.jsdelivr.net/npm/highlight.js@11/highlight.min.js';
-    hlScript.onload = () => {
-        if (window.marked) {
-            window.marked.setOptions({
-                breaks: true,
-                gfm: true,
-            });
-        }
-        // Re-render preview now that hljs is available
-        if (isEditing) updatePreview();
-    };
-    document.head.appendChild(hlScript);
-
-    editor.addEventListener('input', () => {
-        if (markedReady) updatePreview();
-    });
-
-    // ─── Scroll Sync (Editor ↔ Preview) ──────────────────────────
-    let syncingScroll = false;
-
-    editor.addEventListener('scroll', () => {
-        if (syncingScroll) return;
-        syncingScroll = true;
-        const scrollRatio = editor.scrollTop / (editor.scrollHeight - editor.clientHeight || 1);
-        preview.scrollTop = scrollRatio * (preview.scrollHeight - preview.clientHeight);
-        requestAnimationFrame(() => { syncingScroll = false; });
-    });
-
-    preview.addEventListener('scroll', () => {
-        if (syncingScroll) return;
-        syncingScroll = true;
-        const scrollRatio = preview.scrollTop / (preview.scrollHeight - preview.clientHeight || 1);
-        editor.scrollTop = scrollRatio * (editor.scrollHeight - editor.clientHeight);
-        requestAnimationFrame(() => { syncingScroll = false; });
-    });
 
     btnEdit.addEventListener('click', enterEditor);
     btnCancel.addEventListener('click', () => {
@@ -760,24 +749,24 @@
 
     btnSave.addEventListener('click', saveDoc);
 
+    
     async function saveDoc() {
         if (!currentDoc) return;
-        const content = editor.value;
+        const content = toastEditor.getMarkdown();
         const res = await api(`/api/doc/${currentDoc}`, {
             method: 'POST',
             body: JSON.stringify({ content }),
         });
         if (res.success) {
             toast('Saved!');
-            editor.dataset.raw = content;
+            rawDocData = content;
             exitEditor();
             openDoc(currentDoc);
         } else {
             toast(res.error || 'Save failed', 'error');
         }
     }
-
-    btnDeleteDoc.addEventListener('click', async () => {
+btnDeleteDoc.addEventListener('click', async () => {
         if (!currentDoc) return;
         const ok = await showConfirm(`Delete "${currentDoc}"?`);
         if (!ok) return;
@@ -788,78 +777,6 @@
             await loadTree();
             updateTrashCount();
         } else toast(res.error, 'error');
-    });
-
-    // ─── Image Upload ────────────────────────────────────────────
-    btnUpload.addEventListener('click', () => imageInput.click());
-
-    imageInput.addEventListener('change', async (e) => {
-        if (e.target.files.length) {
-            await uploadImage(e.target.files[0]);
-            e.target.value = '';
-        }
-    });
-
-    async function uploadImage(file) {
-        const formData = new FormData();
-        formData.append('image', file);
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.success) {
-            let imgUrl = data.url;
-            if (currentDoc) {
-                const slashes = (currentDoc.match(/\//g) || []).length;
-                imgUrl = (slashes === 0 ? '' : '../'.repeat(slashes)) + data.url.replace(/^\//, '');
-            }
-            insertAtCursor(`![${file.name}](${imgUrl})`);
-            toast('Image uploaded');
-        } else {
-            toast(data.error || 'Upload failed', 'error');
-        }
-    }
-
-    function insertAtCursor(text) {
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        const value = editor.value;
-        editor.value = value.substring(0, start) + '\n' + text + '\n' + value.substring(end);
-        editor.selectionStart = editor.selectionEnd = start + text.length + 2;
-        editor.focus();
-        if (markedReady) updatePreview();
-    }
-
-    // Drag & Drop on editor
-    editorPane.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropOverlay.classList.remove('hidden');
-    });
-    editorPane.addEventListener('dragleave', (e) => {
-        if (!editorPane.contains(e.relatedTarget)) {
-            dropOverlay.classList.add('hidden');
-        }
-    });
-    editorPane.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        dropOverlay.classList.add('hidden');
-        const files = e.dataTransfer.files;
-        for (const file of files) {
-            if (file.type.startsWith('image/')) {
-                await uploadImage(file);
-            }
-        }
-    });
-
-    // Paste from clipboard
-    editor.addEventListener('paste', async (e) => {
-        const items = e.clipboardData.items;
-        for (const item of items) {
-            if (item.type.startsWith('image/')) {
-                e.preventDefault();
-                const file = item.getAsFile();
-                if (file) await uploadImage(file);
-                return;
-            }
-        }
     });
 
     // ─── Search ──────────────────────────────────────────────────
@@ -969,17 +886,6 @@
         if (e.ctrlKey && e.key === 'k') {
             e.preventDefault();
             searchInput.focus();
-        }
-    });
-
-    // ─── Tab support in editor ───────────────────────────────────
-    editor.addEventListener('keydown', (e) => {
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-            editor.selectionStart = editor.selectionEnd = start + 2;
         }
     });
 

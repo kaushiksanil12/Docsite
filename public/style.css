@@ -128,12 +128,17 @@ body {
   min-width: 0;
   width: 0;
   border-right: none;
+  padding: 0;
+  margin: 0;
 }
 
 /* Floating toggle button when sidebar is collapsed */
 .sidebar-float-toggle {
   box-shadow: var(--shadow-md);
   position: fixed;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--glass-bg);
   top: 10px;
   left: 10px;
   z-index: 150;
@@ -155,9 +160,8 @@ body {
   border-color: var(--accent);
 }
 
-.sidebar.collapsed~.main .sidebar-float-toggle,
-.sidebar.collapsed+.sidebar-float-toggle {
-  box-shadow: var(--shadow-md);
+.sidebar.collapsed ~ .sidebar-float-toggle,
+body.sidebar-closed .sidebar-float-toggle {
   display: flex;
 }
 
@@ -415,7 +419,9 @@ body {
 /* Inline input for new file/folder */
 .tree-inline-input {
   width: 100%;
-  background: var(--bg-primary);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--accent);
   color: var(--text-primary);
   padding: 4px 8px;
@@ -873,7 +879,9 @@ kbd {
 .editor {
   flex: 1;
   width: 100%;
-  background: var(--bg-primary);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--text-primary);
   border: none;
   padding: 20px;
@@ -1117,6 +1125,12 @@ kbd {
   justify-content: center;
   z-index: 3000;
   backdrop-filter: blur(4px);
+}
+
+.doc-content {
+  padding: 20px 24px;
+  padding-bottom: 60px;
+  max-width: 100%;
 }
 
 .confirm-box {
@@ -1632,7 +1646,9 @@ kbd {
 .sync-field input[type="password"] {
   width: 100%;
   padding: 10px 14px;
-  background: var(--bg-primary);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
   color: var(--text-primary);
@@ -1737,4 +1753,96 @@ kbd {
   100% {
     background-color: transparent;
   }
+}
+
+
+/* ─── Toast UI Editor Seamless Overrides ──────────────────────── */
+#toast-editor {
+  height: calc(100vh - var(--header-height) - 40px) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.toastui-editor-defaultUI {
+  border: none !important;
+  font-family: var(--font-sans) !important;
+  background: transparent !important;
+}
+
+.toastui-editor-defaultUI-toolbar {
+  background: transparent !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius) var(--radius) 0 0 !important;
+  padding: 4px 8px !important;
+  min-height: 36px !important;
+}
+
+.toastui-editor-toolbar-group button {
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-secondary) !important;
+  margin: 0 2px !important;
+  transform: scale(0.85);
+}
+
+.toastui-editor-toolbar-group button:hover {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+.toastui-editor-main {
+  background: transparent !important;
+  border: none !important;
+}
+
+.toastui-editor-main .toastui-editor-ww-container {
+  background: transparent !important;
+}
+
+.toastui-editor-contents {
+  font-family: var(--font-sans) !important;
+  font-size: 1.05rem !important;
+  line-height: 1.75 !important;
+  padding: 1px 24px 60px 24px !important;
+}
+
+.toastui-editor-defaultUI {
+  position: relative !important;
+}
+
+.toastui-editor-mode-switch.mode-switch-moved {
+  position: static !important;
+  margin-left: auto !important; /* Pushes it to the right in the flex toolbar */
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px !important;
+  padding: 4px !important;
+  display: flex !important;
+  height: auto !important;
+  z-index: 10 !important;
+  box-shadow: none !important;
+}
+
+/* Remove original switch if it wasn't moved */
+.toastui-editor-mode-switch:not(.mode-switch-moved) {
+  display: none !important;
+}
+
+.toastui-editor-mode-switch .tab-item {
+  color: var(--text-secondary) !important;
+  border-radius: 16px !important;
+  padding: 4px 16px !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  background: transparent !important;
+  border: none !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  height: auto !important;
+}
+
+.toastui-editor-mode-switch .tab-item.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-sm) !important;
 }

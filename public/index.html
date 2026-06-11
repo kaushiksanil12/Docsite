@@ -12,6 +12,9 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Toast UI Editor -->
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/theme/toastui-editor-dark.min.css" />
 </head>
 
 <body>
@@ -124,10 +127,10 @@
       <button id="btn-edit" class="tool-btn" title="Edit (Ctrl+E)"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</button>
       <button id="btn-save" class="tool-btn primary hidden" title="Save (Ctrl+S)"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save</button>
       <button id="btn-cancel" class="tool-btn hidden" title="Cancel (Esc)"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Cancel</button>
-      <button id="btn-upload" class="tool-btn hidden" title="Upload image"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image</button>
+      
       <button id="btn-download-pdf" class="tool-btn" title="Download as PDF"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> PDF</button>
       <button id="btn-delete-doc" class="tool-btn danger" title="Delete this document"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete</button>
-      <input type="file" id="image-upload-input" accept="image/*" class="hidden">
+      
     </div>
 
     <!-- Welcome Screen -->
@@ -450,21 +453,9 @@ services:
       <article id="doc-content" class="doc-content"></article>
     </div>
 
-    <!-- Editor (split pane) -->
-    <div id="editor-pane" class="editor-pane hidden">
-      <div class="editor-container">
-        <div class="editor-side">
-          <div class="pane-label">Markdown</div>
-          <textarea id="editor" class="editor" placeholder="Write your markdown here..."></textarea>
-        </div>
-        <div class="preview-side">
-          <div class="pane-label">Preview</div>
-          <div id="preview" class="preview"></div>
-        </div>
-      </div>
-      <div id="drop-overlay" class="drop-overlay hidden">
-        <div class="drop-message"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> Drop image here</div>
-      </div>
+    <!-- Editor (ToastUI) -->
+    <div id="editor-pane" class="editor-pane hidden" style="padding: 20px; overflow-y: auto;">
+      <div id="toast-editor"></div>
     </div>
   </main>
 
@@ -504,7 +495,8 @@ services:
     <button data-action="delete" class="danger"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete</button>
   </div>
 
-  <script src="/app.js?v=3"></script>
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+  <script src="/app.js?v=4"></script>
 </body>
 
 </html>
