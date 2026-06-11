@@ -32,6 +32,7 @@
     const btnSave = $('#btn-save');
     const btnCancel = $('#btn-cancel');
     const btnUpload = $('#btn-upload');
+    const btnDownloadPdf = $('#btn-download-pdf');
     const btnDeleteDoc = $('#btn-delete-doc');
     const imageInput = $('#image-upload-input');
     const btnNewFolder = $('#btn-new-folder');
@@ -628,6 +629,7 @@
         btnSave.classList.remove('hidden');
         btnCancel.classList.remove('hidden');
         btnUpload.classList.remove('hidden');
+        btnDownloadPdf.classList.add('hidden');
         btnDeleteDoc.classList.add('hidden');
     }
 
@@ -638,6 +640,7 @@
         btnSave.classList.add('hidden');
         btnCancel.classList.add('hidden');
         btnUpload.classList.add('hidden');
+        btnDownloadPdf.classList.remove('hidden');
         btnDeleteDoc.classList.remove('hidden');
     }
 
@@ -701,6 +704,39 @@
     btnCancel.addEventListener('click', () => {
         exitEditor();
         if (currentDoc) openDoc(currentDoc);
+    });
+
+    btnDownloadPdf.addEventListener('click', () => {
+        if (!currentDoc) return;
+        const element = document.getElementById('doc-content');
+        
+        const opt = {
+            margin:       [0.5, 0.5, 0.5, 0.5],
+            filename:     currentDoc.split('/').pop().replace('.md', '.pdf'),
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    // Force light theme and explicit dark text colors for PDF readability
+                    clonedDoc.documentElement.setAttribute('data-theme', 'light');
+                    clonedDoc.body.style.background = '#ffffff';
+                    clonedDoc.body.style.color = '#1f2328';
+                    
+                    const clonedContent = clonedDoc.getElementById('doc-content');
+                    if (clonedContent) {
+                        clonedContent.style.color = '#1f2328';
+                        clonedContent.style.background = '#ffffff';
+                    }
+                    
+                    // Hide copy buttons in the clone only
+                    clonedDoc.querySelectorAll('.copy-btn').forEach(btn => btn.style.display = 'none');
+                }
+            },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opt).from(element).save();
     });
 
     btnSave.addEventListener('click', saveDoc);

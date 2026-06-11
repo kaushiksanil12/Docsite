@@ -6,11 +6,12 @@ services:
     container_name: devdocs
     restart: unless-stopped
     ports:
-      - "3100:3000"
+      - "3110:3000"
     volumes:
       - devdocs-config:/app/config
       - devdocs-docs:/app/docs
       - devdocs-uploads:/app/docs/uploads
+      - ./public:/app/public
 
 volumes:
   devdocs-config:
