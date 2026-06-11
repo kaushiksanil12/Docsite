@@ -6,7 +6,7 @@ services:
     container_name: docsite
     restart: unless-stopped
     ports:
-      - "3110:3000"
+      - "3100:3000"
     volumes:
       - ./data/config:/app/config
       - ./data/docs:/app/docs
