@@ -1,19 +1,19 @@
 # Build stage
 FROM golang:1.22-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copy go mod file
-COPY go.mod ./
+COPY backend/go.mod ./
 
 # Copy the source code
-COPY . .
+COPY backend/ .
 
 # Generate go.sum and download dependencies
 RUN go mod tidy
 
 # Build the application (stripped of debug symbols for smaller size)
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/main .
 
 # Production stage
 FROM alpine:latest
