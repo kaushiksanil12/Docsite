@@ -2,12 +2,15 @@ version: '3.8'
 
 services:
   docsite:
-    image: kaushik678/docsite:latest
+    build:
+      context: .
+      network: host
     container_name: docsite
     restart: unless-stopped
     ports:
-      - "3110:3000"
+      - "3120:3000"
     volumes:
       - ./data/config:/app/config
       - ./data/docs:/app/docs
       - ./data/uploads:/app/docs/uploads
+      - ./public:/app/public

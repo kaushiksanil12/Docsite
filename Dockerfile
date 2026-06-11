@@ -3,12 +3,14 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
-RUN go mod download
+# Copy go mod file
+COPY go.mod ./
 
 # Copy the source code
 COPY . .
+
+# Generate go.sum and download dependencies
+RUN go mod tidy
 
 # Build the application (stripped of debug symbols for smaller size)
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main .
@@ -38,14 +40,14 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
 # Run as non-root user
-RUN addgroup -g 1001 -S devdocs && adduser -S devdocs -u 1001 -G devdocs
-RUN chown -R devdocs:devdocs /app
-USER devdocs
+RUN addgroup -g 1001 -S docsite && adduser -S docsite -u 1001 -G docsite
+RUN chown -R docsite:docsite /app
+USER docsite
 
 # Trust all directories for git to prevent dubious ownership errors
 RUN git config --global --add safe.directory '*'
-RUN git config --global user.email "devdocs@auto.sync"
-RUN git config --global user.name "DevDocs AutoSync"
+RUN git config --global user.email "docsite@auto.sync"
+RUN git config --global user.name "Docsite AutoSync"
 RUN git config --global pull.rebase false
 
 CMD ["./main"]

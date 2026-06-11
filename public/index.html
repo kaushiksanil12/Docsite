@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevDocs — Documentation</title>
+  <title>Docsite — Documentation</title>
   <meta name="description" content="Minimal file-based documentation tool for DevOps learning">
   <link rel="stylesheet" href="/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
     <div class="sidebar-header">
       <div class="logo">
         <span class="logo-icon">📖</span>
-        <span class="logo-text">DevDocs</span>
+        <span class="logo-text">Docsite</span>
       </div>
       <div style="display: flex; gap: 4px; align-items: center;">
         <button id="theme-toggle" class="icon-btn" title="Toggle Light/Dark Mode">☀️</button>
@@ -133,7 +133,7 @@
     <!-- Welcome Screen -->
     <div id="welcome" class="welcome">
       <div class="welcome-content">
-        <h1>📖 Welcome to DevDocs</h1>
+        <h1>📖 Welcome to Docsite</h1>
         <p>Your personal documentation tool.</p>
         <div class="welcome-grid">
           <div class="welcome-card">
@@ -183,7 +183,7 @@
     <div id="manual-panel" class="manual-overlay hidden">
       <div class="manual-box">
         <div class="manual-header">
-          <h2>📘 DevDocs Manual</h2>
+          <h2>📘 Docsite Manual</h2>
           <button id="btn-close-manual" class="tool-btn" title="Close">✕</button>
         </div>
         <div class="manual-content">
@@ -374,7 +374,7 @@
 
           <section class="manual-section" id="manual-git-sync">
             <h3>🔄 Git Repo Auto-Sync</h3>
-            <p>DevDocs can automatically backup all your documentation to a private GitHub repository.</p>
+            <p>Docsite can automatically backup all your documentation to a private GitHub repository.</p>
             <ul>
               <li>Click <strong>🔄 Sync</strong> at the bottom of the sidebar to open the setup panel.</li>
               <li>Create a new empty repository on GitHub and paste the URL.</li>
@@ -394,12 +394,12 @@
                 <li>Go to <strong>GitHub Settings</strong> → <strong>Developer Settings</strong>.</li>
                 <li>Select <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong>.</li>
                 <li>Click <strong>Generate new token (classic)</strong>.</li>
-                <li>Give it a name (e.g., "DevDocs-Sync").</li>
+                <li>Give it a name (e.g., "Docsite-Sync").</li>
                 <li>Select the <strong>'repo'</strong> scope (Full control of private repositories).</li>
                 <li>Scroll down, click <strong>Generate token</strong>, and copy it immediately!</li>
               </ol>
               <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 10px; line-height: 1.4;">
-                <em><strong>Tip:</strong> This token acts like a password for this specific repo. It allows DevDocs to
+                <em><strong>Tip:</strong> This token acts like a password for this specific repo. It allows Docsite to
                   sync your data even on new machines or VMs.</em>
               </p>
             </div>

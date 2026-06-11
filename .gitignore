@@ -3,12 +3,10 @@ node_modules/
 *.log
 .DS_Store
 
-# DevDocs Data (Local)
-docs/
-uploads/
+# Docsite Data (Local)
+data/
 # Trash and configs
 trash/
-config/sync.json
 .data-repo/
 
 # Config & Environment

@@ -117,7 +117,7 @@ func main() {
 	FileServer(r, "/uploads", uploadsDir)
 
 	fmt.Printf("\n  ╔══════════════════════════════════════╗\n")
-	fmt.Printf("  ║   DevDocs (Go) running on port %s     ║\n", PORT)
+	fmt.Printf("  ║   Docsite (Go) running on port %s     ║\n", PORT)
 	fmt.Printf("  ║   http://localhost:%s              ║\n", PORT)
 	fmt.Printf("  ╚══════════════════════════════════════╝\n\n")
 	fmt.Printf("  📁 Docs directory:    %s\n", DOCS_DIR)

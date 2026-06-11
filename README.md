@@ -1,10 +1,10 @@
-# DevDocs
+# Docsite
 
-DevDocs is a lightweight, portable documentation server built with Go. It allows you to manage your markdown notes with ease, featuring automatic synchronization with a Git repository of your choice.
+Docsite is a lightweight, portable documentation server built with Go. It allows you to manage your markdown notes with ease, featuring automatic synchronization with a Git repository of your choice.
 
 ## 🚀 Quick Install
 
-The easiest way to install DevDocs on any Linux/macOS machine is with this one-liner:
+The easiest way to install Docsite on any Linux/macOS machine is with this one-liner:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/kaushiksanil12/Docsite/main/install.sh | bash
@@ -20,10 +20,10 @@ curl -sSL https://raw.githubusercontent.com/kaushiksanil12/Docsite/main/install.
 
 ## 🛠️ Usage
 
-After installation, simply run the `devdocs` command:
+After installation, simply run the `docsite` command:
 
 ```bash
-devdocs
+docsite
 ```
 
 Access your documentation at [http://localhost:3100](http://localhost:3100).

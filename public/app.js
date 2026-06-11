@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   DevDocs — Client-Side Application
+   Docsite — Client-Side Application
    ═══════════════════════════════════════════════════════════════ */
 
 (() => {
@@ -906,7 +906,7 @@
 
     // ─── Theme Toggle ────────────────────────────────────────────
     function getSavedTheme() {
-        return localStorage.getItem('devdocs-theme') || 'dark';
+        return localStorage.getItem('docsite-theme') || 'dark';
     }
 
     function applyTheme(theme) {
@@ -922,7 +922,7 @@
     themeToggle.addEventListener('click', () => {
         const currentTheme = getSavedTheme();
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('devdocs-theme', newTheme);
+        localStorage.setItem('docsite-theme', newTheme);
         applyTheme(newTheme);
     });
 

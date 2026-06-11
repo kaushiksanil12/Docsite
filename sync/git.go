@@ -148,7 +148,7 @@ func (g *GitManager) EnsureHasCommit() error {
 	}
 
 	log.Println("Git Sync: No commits found. Creating initial empty commit...")
-	_, err = g.runCommand("commit", "--allow-empty", "-m", "Initial commit from DevDocs")
+	_, err = g.runCommand("commit", "--allow-empty", "-m", "Initial commit from Docsite")
 	return err
 }
 
@@ -219,7 +219,7 @@ func (g *GitManager) getAuthenticatedURL() string {
 // "uploads/" — that prevents images from being pushed to GitHub.
 func (g *GitManager) ensureDataGitignore() {
 	gitignorePath := filepath.Join(g.TargetDir, ".gitignore")
-	content := "# DevDocs data repo\n.DS_Store\n*.log\n"
+	content := "# Docsite data repo\n.DS_Store\n*.log\n"
 	os.WriteFile(gitignorePath, []byte(content), 0644)
 }
 
@@ -238,7 +238,7 @@ func (g *GitManager) Sync() error {
 	}
 
 	// 2. Commit (ignore error if nothing to commit)
-	out, err = g.runCommand("commit", "-m", "Auto-sync from DevDocs (Go)")
+	out, err = g.runCommand("commit", "-m", "Auto-sync from Docsite (Go)")
 	if err != nil {
 		// Only log commit info, don't fail sync if nothing to commit
 		log.Printf("Git Sync: Commit info: %v (Output: %s)", err, out)
