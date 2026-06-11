@@ -1778,6 +1778,34 @@ kbd {
   min-height: 36px !important;
 }
 
+/* Hide toolbar completely when hide-toolbar class is present (managed by JS) */
+#toast-editor.hide-toolbar .toastui-editor-toolbar,
+#toast-editor.hide-toolbar .toastui-editor-defaultUI-toolbar,
+#toast-editor.hide-toolbar .toastui-editor-md-tab-container {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Force the main editor area to slide up and take the empty space */
+#toast-editor.hide-toolbar .toastui-editor-defaultUI {
+  display: flex !important;
+  flex-direction: column !important;
+  padding-top: 0 !important;
+}
+
+#toast-editor.hide-toolbar .toastui-editor-main,
+#toast-editor.hide-toolbar .toastui-editor-main-container {
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  height: 100% !important;
+  flex: 1 !important;
+}
+
 .toastui-editor-toolbar-group button {
   border-radius: var(--radius-sm) !important;
   color: var(--text-secondary) !important;

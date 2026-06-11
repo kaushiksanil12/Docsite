@@ -649,7 +649,7 @@
             toastEditor = new toastui.Editor({
                 el: document.querySelector('#toast-editor'),
                 height: '100%',
-                initialEditType: 'wysiwyg',
+                initialEditType: 'markdown',
                 previewStyle: 'vertical',
                 theme: getSavedTheme() === 'dark' ? 'dark' : 'light',
                 hooks: {
@@ -679,6 +679,21 @@
                 toolbarContainer.appendChild(modeSwitch);
                 modeSwitch.classList.add('mode-switch-moved');
             }
+
+            // Robust toolbar hiding
+            function updateToolbarVisibility() {
+                const isWysiwyg = toastEditor.isWysiwygMode();
+                const container = document.getElementById('toast-editor');
+                if (container) {
+                    if (isWysiwyg) {
+                        container.classList.remove('hide-toolbar');
+                    } else {
+                        container.classList.add('hide-toolbar');
+                    }
+                }
+            }
+            toastEditor.on('changeMode', updateToolbarVisibility);
+            setTimeout(updateToolbarVisibility, 50);
         }
         
         // Ensure theme matches
