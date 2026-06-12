@@ -29,4 +29,3 @@ bin/
 cover.out
 
 # Go modules
-go.sum

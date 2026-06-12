@@ -327,7 +327,10 @@
         const res = await api(`/api/doc/${path}`, { method: 'DELETE' });
         if (res.success) {
             toast('Moved to trash');
-            if (currentDoc === path) { currentDoc = null; showWelcome(); }
+            if (currentDoc === path || (currentDoc && currentDoc.startsWith(path + '/'))) { 
+                currentDoc = null; 
+                showWelcome(); 
+            }
             await loadTree();
             updateTrashCount();
         } else {
@@ -501,18 +504,7 @@
                 break;
             }
             case 'delete': {
-                const confirmMsg = type === 'folder'
-                    ? `Delete folder "${path}" and ALL its contents?`
-                    : `Delete "${path}"?`;
-                const ok = await showConfirm(confirmMsg);
-                if (!ok) return;
-                const res = await api(`/api/doc/${path}`, { method: 'DELETE' });
-                if (res.success) {
-                    toast('Moved to trash');
-                    if (currentDoc === path) { currentDoc = null; showWelcome(); }
-                    await loadTree();
-                    updateTrashCount();
-                } else toast(res.error, 'error');
+                await deleteTreeItem(path, type);
                 break;
             }
         }
@@ -577,7 +569,7 @@
 
     function renderBreadcrumbs(filePath) {
         const parts = filePath.replace('.md', '').split('/');
-        breadcrumbs.innerHTML = `<a class="breadcrumb-link" onclick="window.__showWelcome()"><span style="display:flex;align-items:center;gap:6px;">${Icons.home} Home</span></a>`;
+        breadcrumbs.innerHTML = `<a class="breadcrumb-link" id="bc-home"><span style="display:flex;align-items:center;gap:6px;">${Icons.home} Home</span></a>`;
         parts.forEach((part, i) => {
             breadcrumbs.innerHTML += `<span class="breadcrumb-sep">/</span>`;
             if (i === parts.length - 1) {
@@ -586,6 +578,7 @@
                 breadcrumbs.innerHTML += `<span class="breadcrumb-link">${part}</span>`;
             }
         });
+        document.getElementById('bc-home').addEventListener('click', showWelcome);
     }
 
     function showWelcome() {
@@ -597,7 +590,6 @@
         breadcrumbs.innerHTML = '';
         document.querySelectorAll('.tree-label').forEach(el => el.classList.remove('active'));
     }
-    window.__showWelcome = showWelcome;
 
     // ─── Manual Panel ────────────────────────────────────────────
     const manualPanel = $('#manual-panel');
@@ -783,15 +775,7 @@ function exitEditor() {
     }
 btnDeleteDoc.addEventListener('click', async () => {
         if (!currentDoc) return;
-        const ok = await showConfirm(`Delete "${currentDoc}"?`);
-        if (!ok) return;
-        const res = await api(`/api/doc/${currentDoc}`, { method: 'DELETE' });
-        if (res.success) {
-            toast('Moved to trash');
-            showWelcome();
-            await loadTree();
-            updateTrashCount();
-        } else toast(res.error, 'error');
+        await deleteTreeItem(currentDoc, 'file');
     });
 
     // ─── Search ──────────────────────────────────────────────────
@@ -822,9 +806,14 @@ btnDeleteDoc.addEventListener('click', async () => {
             const el = document.createElement('div');
             el.className = 'search-result-item';
 
+            // Sanitize snippet to prevent XSS
+            const div = document.createElement('div');
+            div.innerText = r.snippet;
+            const safeSnippet = div.innerHTML;
+
             // Highlight matching text in snippet
             const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
-            const highlighted = r.snippet.replace(regex, '<span class="highlight">$1</span>');
+            const highlighted = safeSnippet.replace(regex, '<span class="highlight">$1</span>');
 
             el.innerHTML = `
         <div class="result-name">${r.name}</div>
@@ -1191,6 +1180,401 @@ btnDeleteDoc.addEventListener('click', async () => {
 
     // Poll sync status every 30 seconds
     setInterval(loadSyncStatus, 30000);
+
+    // ─── Knowledge Graph ──────────────────────────────────────────
+    const graphPanel = $('#graph-panel');
+    const btnOpenGraph = $('#btn-open-graph');
+    const btnCloseGraph = $('#btn-close-graph');
+    const btnGraphReset = $('#btn-graph-reset');
+    const graphCanvas = $('#graph-canvas');
+    const graphTooltip = $('#graph-tooltip');
+    const graphNodeCount = $('#graph-node-count');
+    const graphEmpty = $('#graph-empty');
+    const graphCtx = graphCanvas.getContext('2d');
+
+    let graphNodes = [];
+    let graphEdges = [];
+    let graphAnimId = null;
+    let graphZoom = 1;
+    let graphPanX = 0;
+    let graphPanY = 0;
+    let graphDragging = null; // node being dragged
+    let graphPanning = false;
+    let graphPanStart = { x: 0, y: 0 };
+    let graphHovered = null;
+    let graphSimRunning = false;
+    let graphSimIterations = 0;
+
+    function getGraphColors() {
+        const style = getComputedStyle(document.documentElement);
+        return {
+            bg: style.getPropertyValue('--bg-primary').trim() || '#0A0A0B',
+            nodeFill: style.getPropertyValue('--accent').trim() || '#6366F1',
+            nodeStroke: style.getPropertyValue('--accent-hover').trim() || '#818CF8',
+            edge: style.getPropertyValue('--border-light').trim() || '#3F3F45',
+            text: style.getPropertyValue('--text-primary').trim() || '#F3F4F6',
+            textMuted: style.getPropertyValue('--text-muted').trim() || '#6B7280',
+            green: style.getPropertyValue('--green').trim() || '#10B981',
+            purple: style.getPropertyValue('--purple').trim() || '#8B5CF6',
+            orange: style.getPropertyValue('--orange').trim() || '#F59E0B',
+        };
+    }
+
+    async function loadGraph() {
+        const data = await api('/api/graph');
+        if (!data.nodes || data.nodes.length === 0) {
+            graphEmpty.classList.remove('hidden');
+            graphCanvas.classList.add('hidden');
+            graphNodeCount.textContent = '';
+            return;
+        }
+        graphEmpty.classList.add('hidden');
+        graphCanvas.classList.remove('hidden');
+        graphNodeCount.textContent = data.nodes.length + ' docs · ' + data.edges.length + ' links';
+
+        // Initialize node positions in a circle
+        const cx = graphCanvas.width / 2;
+        const cy = graphCanvas.height / 2;
+        const radius = Math.min(cx, cy) * 0.6;
+
+        graphNodes = data.nodes.map((n, i) => {
+            const angle = (2 * Math.PI * i) / data.nodes.length;
+            return {
+                ...n,
+                x: cx + radius * Math.cos(angle) + (Math.random() - 0.5) * 40,
+                y: cy + radius * Math.sin(angle) + (Math.random() - 0.5) * 40,
+                vx: 0,
+                vy: 0,
+                radius: Math.max(5, Math.min(18, 5 + (n.links || 0) * 2.5)),
+            };
+        });
+
+        // Build edge index referencing node objects
+        const nodeMap = {};
+        graphNodes.forEach(n => nodeMap[n.id] = n);
+        graphEdges = (data.edges || [])
+            .filter(e => nodeMap[e.source] && nodeMap[e.target])
+            .map(e => ({
+                source: nodeMap[e.source],
+                target: nodeMap[e.target],
+            }));
+
+        // Reset view
+        graphZoom = 1;
+        graphPanX = 0;
+        graphPanY = 0;
+
+        // Run simulation
+        graphSimIterations = 0;
+        graphSimRunning = true;
+        if (graphAnimId) cancelAnimationFrame(graphAnimId);
+        graphAnimLoop();
+    }
+
+    function graphSimStep() {
+        const REPULSION = 3000;
+        const ATTRACTION = 0.008;
+        const CENTER_GRAVITY = 0.01;
+        const DAMPING = 0.92;
+        const cx = graphCanvas.width / 2;
+        const cy = graphCanvas.height / 2;
+
+        // Repulsion between all nodes
+        for (let i = 0; i < graphNodes.length; i++) {
+            for (let j = i + 1; j < graphNodes.length; j++) {
+                const a = graphNodes[i], b = graphNodes[j];
+                let dx = a.x - b.x;
+                let dy = a.y - b.y;
+                let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                let force = REPULSION / (dist * dist);
+                let fx = (dx / dist) * force;
+                let fy = (dy / dist) * force;
+                a.vx += fx; a.vy += fy;
+                b.vx -= fx; b.vy -= fy;
+            }
+        }
+
+        // Attraction along edges
+        for (const e of graphEdges) {
+            let dx = e.target.x - e.source.x;
+            let dy = e.target.y - e.source.y;
+            let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            let force = dist * ATTRACTION;
+            let fx = (dx / dist) * force;
+            let fy = (dy / dist) * force;
+            e.source.vx += fx; e.source.vy += fy;
+            e.target.vx -= fx; e.target.vy -= fy;
+        }
+
+        // Center gravity
+        for (const n of graphNodes) {
+            n.vx += (cx - n.x) * CENTER_GRAVITY;
+            n.vy += (cy - n.y) * CENTER_GRAVITY;
+        }
+
+        // Apply velocities with damping
+        let totalMotion = 0;
+        for (const n of graphNodes) {
+            if (n === graphDragging) continue;
+            n.vx *= DAMPING;
+            n.vy *= DAMPING;
+            n.x += n.vx;
+            n.y += n.vy;
+            totalMotion += Math.abs(n.vx) + Math.abs(n.vy);
+        }
+
+        graphSimIterations++;
+        // Stop simulating once settled or after enough iterations
+        if (totalMotion < 0.5 || graphSimIterations > 500) {
+            graphSimRunning = false;
+        }
+    }
+
+    function graphDraw() {
+        const w = graphCanvas.width;
+        const h = graphCanvas.height;
+        const colors = getGraphColors();
+
+        graphCtx.clearRect(0, 0, w, h);
+        graphCtx.fillStyle = colors.bg;
+        graphCtx.fillRect(0, 0, w, h);
+
+        graphCtx.save();
+        graphCtx.translate(w / 2 + graphPanX, h / 2 + graphPanY);
+        graphCtx.scale(graphZoom, graphZoom);
+        graphCtx.translate(-w / 2, -h / 2);
+
+        // Draw edges
+        for (const e of graphEdges) {
+            const isHighlighted = graphHovered &&
+                (e.source.id === graphHovered.id || e.target.id === graphHovered.id);
+
+            graphCtx.beginPath();
+            graphCtx.moveTo(e.source.x, e.source.y);
+            graphCtx.lineTo(e.target.x, e.target.y);
+            graphCtx.strokeStyle = isHighlighted ? colors.nodeStroke : colors.edge;
+            graphCtx.lineWidth = isHighlighted ? 2 : 1;
+            graphCtx.globalAlpha = isHighlighted ? 0.9 : 0.35;
+            graphCtx.stroke();
+            graphCtx.globalAlpha = 1;
+        }
+
+        // Draw nodes
+        for (const n of graphNodes) {
+            const isActive = currentDoc === n.path;
+            const isHov = graphHovered && graphHovered.id === n.id;
+            const isConnected = graphHovered && graphEdges.some(e =>
+                (e.source.id === graphHovered.id && e.target.id === n.id) ||
+                (e.target.id === graphHovered.id && e.source.id === n.id)
+            );
+
+            let fillColor = colors.nodeFill;
+            let strokeColor = colors.nodeStroke;
+            let r = n.radius;
+
+            if (isActive) {
+                fillColor = colors.green;
+                strokeColor = colors.green;
+                r += 2;
+            } else if (isHov) {
+                fillColor = colors.orange;
+                strokeColor = colors.orange;
+                r += 3;
+            } else if (isConnected) {
+                fillColor = colors.purple;
+                strokeColor = colors.purple;
+                r += 1;
+            } else if (n.links === 0) {
+                graphCtx.globalAlpha = 0.5;
+            }
+
+            // Glow for active/hovered
+            if (isActive || isHov) {
+                graphCtx.beginPath();
+                graphCtx.arc(n.x, n.y, r + 8, 0, 2 * Math.PI);
+                graphCtx.fillStyle = fillColor;
+                graphCtx.globalAlpha = 0.12;
+                graphCtx.fill();
+                graphCtx.globalAlpha = 1;
+            }
+
+            // Node circle
+            graphCtx.beginPath();
+            graphCtx.arc(n.x, n.y, r, 0, 2 * Math.PI);
+            graphCtx.fillStyle = fillColor;
+            graphCtx.fill();
+            graphCtx.strokeStyle = strokeColor;
+            graphCtx.lineWidth = isHov ? 2.5 : 1.5;
+            graphCtx.stroke();
+
+            graphCtx.globalAlpha = 1;
+
+            // Label — show for hovered, active, connected, or high-link nodes
+            if (isHov || isActive || isConnected || n.links >= 3) {
+                graphCtx.font = `${isHov ? 'bold ' : ''}${isHov ? 13 : 11}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() || 'Inter'}`;
+                graphCtx.fillStyle = isHov || isActive ? colors.text : colors.textMuted;
+                graphCtx.textAlign = 'center';
+                graphCtx.textBaseline = 'top';
+                graphCtx.fillText(n.name, n.x, n.y + r + 6);
+            }
+        }
+
+        graphCtx.restore();
+    }
+
+    function graphAnimLoop() {
+        if (graphSimRunning) {
+            graphSimStep();
+        }
+        graphDraw();
+        graphAnimId = requestAnimationFrame(graphAnimLoop);
+    }
+
+    function stopGraphAnim() {
+        if (graphAnimId) {
+            cancelAnimationFrame(graphAnimId);
+            graphAnimId = null;
+        }
+        graphSimRunning = false;
+    }
+
+    function resizeGraphCanvas() {
+        const container = graphCanvas.parentElement;
+        if (!container) return;
+        graphCanvas.width = container.clientWidth;
+        graphCanvas.height = container.clientHeight;
+    }
+
+    function screenToGraph(mx, my) {
+        const rect = graphCanvas.getBoundingClientRect();
+        const sx = mx - rect.left;
+        const sy = my - rect.top;
+        const w = graphCanvas.width;
+        const h = graphCanvas.height;
+        return {
+            x: (sx - w / 2 - graphPanX) / graphZoom + w / 2,
+            y: (sy - h / 2 - graphPanY) / graphZoom + h / 2,
+        };
+    }
+
+    function findNodeAt(gx, gy) {
+        // Search in reverse so top-rendered nodes (last drawn) are hit first
+        for (let i = graphNodes.length - 1; i >= 0; i--) {
+            const n = graphNodes[i];
+            const dx = gx - n.x;
+            const dy = gy - n.y;
+            if (dx * dx + dy * dy <= (n.radius + 4) * (n.radius + 4)) {
+                return n;
+            }
+        }
+        return null;
+    }
+
+    // --- Graph mouse interactions ---
+    graphCanvas.addEventListener('mousedown', (e) => {
+        const pos = screenToGraph(e.clientX, e.clientY);
+        const node = findNodeAt(pos.x, pos.y);
+        if (node) {
+            graphDragging = node;
+            graphCanvas.style.cursor = 'grabbing';
+        } else {
+            graphPanning = true;
+            graphPanStart = { x: e.clientX - graphPanX, y: e.clientY - graphPanY };
+            graphCanvas.style.cursor = 'grabbing';
+        }
+    });
+
+    graphCanvas.addEventListener('mousemove', (e) => {
+        if (graphDragging) {
+            const pos = screenToGraph(e.clientX, e.clientY);
+            graphDragging.x = pos.x;
+            graphDragging.y = pos.y;
+            graphDragging.vx = 0;
+            graphDragging.vy = 0;
+            // Restart sim briefly to let others adjust
+            if (!graphSimRunning) {
+                graphSimRunning = true;
+                graphSimIterations = 450; // Only run a few more
+            }
+        } else if (graphPanning) {
+            graphPanX = e.clientX - graphPanStart.x;
+            graphPanY = e.clientY - graphPanStart.y;
+        } else {
+            const pos = screenToGraph(e.clientX, e.clientY);
+            const node = findNodeAt(pos.x, pos.y);
+            graphHovered = node;
+            graphCanvas.style.cursor = node ? 'pointer' : 'default';
+
+            // Update tooltip
+            if (node) {
+                graphTooltip.textContent = node.name + (node.links > 0 ? ' (' + node.links + ' links)' : ' (no links)');
+                graphTooltip.classList.remove('hidden');
+                const rect = graphCanvas.getBoundingClientRect();
+                graphTooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+                graphTooltip.style.top = (e.clientY - rect.top - 10) + 'px';
+            } else {
+                graphTooltip.classList.add('hidden');
+            }
+        }
+    });
+
+    graphCanvas.addEventListener('mouseup', (e) => {
+        if (graphDragging) {
+            graphDragging = null;
+        } else if (!graphPanning) {
+            // It was a click without drag
+        }
+        graphPanning = false;
+        graphCanvas.style.cursor = 'default';
+    });
+
+    graphCanvas.addEventListener('dblclick', (e) => {
+        const pos = screenToGraph(e.clientX, e.clientY);
+        const node = findNodeAt(pos.x, pos.y);
+        if (node) {
+            graphPanel.classList.add('hidden');
+            stopGraphAnim();
+            openDoc(node.path);
+        }
+    });
+
+    graphCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+        graphZoom = Math.max(0.2, Math.min(5, graphZoom * zoomFactor));
+    }, { passive: false });
+
+    // Open/close graph panel
+    btnOpenGraph.addEventListener('click', async () => {
+        graphPanel.classList.remove('hidden');
+        resizeGraphCanvas();
+        await loadGraph();
+    });
+
+    btnCloseGraph.addEventListener('click', () => {
+        graphPanel.classList.add('hidden');
+        stopGraphAnim();
+    });
+
+    graphPanel.addEventListener('click', (e) => {
+        if (e.target === graphPanel) {
+            graphPanel.classList.add('hidden');
+            stopGraphAnim();
+        }
+    });
+
+    btnGraphReset.addEventListener('click', () => {
+        graphZoom = 1;
+        graphPanX = 0;
+        graphPanY = 0;
+    });
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+        if (!graphPanel.classList.contains('hidden')) {
+            resizeGraphCanvas();
+        }
+    });
 
     // ─── Init ────────────────────────────────────────────────────
     loadTree();

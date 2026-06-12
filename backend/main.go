@@ -39,7 +39,9 @@ func main() {
 
 	// Ensure trash meta file exists
 	if _, err := os.Stat(TRASH_META_FILE); os.IsNotExist(err) {
-		os.WriteFile(TRASH_META_FILE, []byte("[]"), 0644)
+		if err := os.WriteFile(TRASH_META_FILE, []byte("[]"), 0644); err != nil {
+			log.Printf("Failed to create trash meta file: %v", err)
+		}
 	}
 
 	// Initialize Git Sync
@@ -74,6 +76,9 @@ func main() {
 	// Middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(func(next http.Handler) http.Handler {
+		return http.MaxBytesHandler(next, 10<<20) // 10 MB limit
+	})
 
 	// API Routes (Placeholders)
 	r.Route("/api", func(r chi.Router) {
@@ -84,6 +89,7 @@ func main() {
 
 		r.Get("/tree", handlers.GetTree(DOCS_DIR))
 		r.Get("/search", handlers.SearchDocs(DOCS_DIR))
+		r.Get("/graph", handlers.GetGraph(DOCS_DIR))
 		r.Get("/doc/*", handlers.GetDoc(DOCS_DIR))
 		r.Post("/doc/*", handlers.SaveDoc(DOCS_DIR, UPLOADS_DIR))
 		r.Delete("/doc/*", handlers.DeleteDoc(DOCS_DIR, UPLOADS_DIR, filepath.Join(TRASH_DIR, "docs"), filepath.Join(TRASH_DIR, "uploads"), TRASH_META_FILE))
@@ -145,10 +151,18 @@ func main() {
 	<-quit
 	log.Println("Shutting down server...")
 
+	// Stop background scheduler
+	scheduler.Stop()
+
 	// Perform final sync
-	if gitManager != nil && sync.GetConfiguration().Enabled {
+	sync.GitMu.RLock()
+	g := gitManager
+	enabled := sync.GetConfiguration().Enabled
+	sync.GitMu.RUnlock()
+
+	if g != nil && enabled {
 		log.Println("Triggering final sync before shutdown...")
-		if err := gitManager.Sync(); err != nil {
+		if err := g.Sync(); err != nil {
 			log.Printf("Final sync failed: %v", err)
 		} else {
 			log.Println("Final sync completed successfully.")

@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -292,7 +293,9 @@ func UploadImage(uploadsDir string) http.HandlerFunc {
 			return
 		}
 
-		uniqueName := fmt.Sprintf("%d-%d%s", time.Now().UnixNano(), rand.Intn(1000000), ext)
+		b := make([]byte, 8)
+		rand.Read(b)
+		uniqueName := fmt.Sprintf("%d-%s%s", time.Now().UnixNano(), hex.EncodeToString(b), ext)
 		destPath := filepath.Join(uploadsDir, uniqueName)
 
 		dst, err := os.Create(destPath)

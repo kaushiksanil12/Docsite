@@ -32,6 +32,9 @@ var (
 	currStatus SyncStatus
 	statusMu   sync.RWMutex
 	currConfig SyncConfig
+
+	// GitMu protects access to the GitManager pointer across goroutines
+	GitMu sync.RWMutex
 )
 
 func setStatus(status string, err error) {

@@ -16,7 +16,7 @@ RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/main .
 
 # Production stage
-FROM alpine:latest
+FROM alpine:3.19
 
 # Install git for sync
 RUN apk add --no-cache git
@@ -44,8 +44,8 @@ RUN addgroup -g 1001 -S docsite && adduser -S docsite -u 1001 -G docsite
 RUN chown -R docsite:docsite /app
 USER docsite
 
-# Trust all directories for git to prevent dubious ownership errors
-RUN git config --global --add safe.directory '*'
+# Trust specific directories for git to prevent dubious ownership errors
+RUN git config --global --add safe.directory /app/docs
 RUN git config --global user.email "docsite@auto.sync"
 RUN git config --global user.name "Docsite AutoSync"
 RUN git config --global pull.rebase false

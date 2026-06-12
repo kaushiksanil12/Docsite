@@ -18,12 +18,15 @@ echo "🐳 Preparing to publish Docsite to Docker Hub..."
 docker build --network host -t docsite .
 
 # 2. Tag for Docker Hub
-echo "🏷️  Tagging as $USERNAME/docsite:latest..."
+GIT_SHA=$(git rev-parse --short HEAD)
+echo "🏷️  Tagging as $USERNAME/docsite:latest and $USERNAME/docsite:$GIT_SHA..."
 docker tag docsite "$USERNAME/docsite:latest"
+docker tag docsite "$USERNAME/docsite:$GIT_SHA"
 
 # 3. Push to Docker Hub
 echo "🚀 Pushing to Docker Hub..."
 docker push "$USERNAME/docsite:latest"
+docker push "$USERNAME/docsite:$GIT_SHA"
 
 echo "✅ Successfully published to https://hub.docker.com/r/$USERNAME/docsite"
 echo ""

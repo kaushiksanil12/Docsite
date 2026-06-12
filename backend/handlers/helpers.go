@@ -12,16 +12,15 @@ import (
 // SafePath validates a relative path and returns an absolute path if safe
 func SafePath(rootDir, relPath string) string {
 	cleaned := filepath.Clean(relPath)
-	if strings.HasPrefix(cleaned, "..") || filepath.IsAbs(cleaned) {
-		cleaned = strings.TrimPrefix(cleaned, "..")
-		cleaned = strings.TrimPrefix(cleaned, "/")
+	if strings.Contains(cleaned, "..") || filepath.IsAbs(cleaned) {
+		return ""
 	}
 
 	full := filepath.Join(rootDir, cleaned)
 	absRoot, _ := filepath.Abs(rootDir)
 	absFull, _ := filepath.Abs(full)
 
-	if !strings.HasPrefix(absFull, absRoot) {
+	if !strings.HasPrefix(absFull, absRoot+string(filepath.Separator)) && absFull != absRoot {
 		return ""
 	}
 
@@ -142,7 +141,14 @@ func readTrashMeta(path string) []TrashItem {
 }
 
 // writeTrashMeta writes trash metadata to file
-func writeTrashMeta(path string, meta []TrashItem) {
-	data, _ := json.MarshalIndent(meta, "", "  ")
-	os.WriteFile(path, data, 0644)
+func writeTrashMeta(path string, meta []TrashItem) error {
+	data, err := json.MarshalIndent(meta, "", "  ")
+	if err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
 }

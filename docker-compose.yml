@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   docsite:
-    image: kaushik678/docsite:latest
+    image: ${DOCKER_USERNAME:-kaushik678}/docsite:latest
     container_name: docsite
     restart: unless-stopped
     ports:

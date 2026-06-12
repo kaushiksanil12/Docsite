@@ -6,15 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Docsite — Documentation</title>
   <meta name="description" content="Minimal file-based documentation tool for DevOps learning">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
   <link rel="stylesheet" href="/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc" crossorigin="anonymous"></script>
   <!-- Toast UI Editor -->
-  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
-  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/theme/toastui-editor-dark.min.css" />
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" integrity="sha384-Uw+ry/KtbmFNRGJd+U+hpfJou1QMHCAQc8k8OdZkclgUySjn8aJJcVTkkCeSwP6H" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/theme/toastui-editor-dark.min.css" integrity="sha384-sVw6WIm9J/uQN297I6pVzNTIZf44KjU+hr4aeWw7/a6jmwjHKJHyaqawLS4LUIq0" crossorigin="anonymous" />
 </head>
 
 <body>
@@ -51,6 +52,9 @@
     <div class="sidebar-trash">
       <button id="btn-open-trash" class="action-btn trash-btn" title="View Trash">
         <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span> Trash <span id="trash-count" class="trash-count hidden">0</span>
+      </button>
+      <button id="btn-open-graph" class="action-btn graph-btn" title="Knowledge Graph">
+        <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="3"></circle><circle cx="19" cy="6" r="3"></circle><circle cx="12" cy="18" r="3"></circle><line x1="7.5" y1="7.5" x2="10" y2="16"></line><line x1="16.5" y1="7.5" x2="14" y2="16"></line><line x1="8" y1="6" x2="16" y2="6"></line></svg></span> Graph
       </button>
       <button id="btn-open-sync" class="action-btn sync-btn" title="Sync Settings">
         <span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></span> Sync <span id="sync-status-dot" class="sync-dot"></span>
@@ -495,7 +499,29 @@ services:
     <button data-action="delete" class="danger"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete</button>
   </div>
 
-  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+  <!-- Graph Overlay -->
+  <div id="graph-panel" class="graph-overlay hidden">
+    <div class="graph-box">
+      <div class="graph-header">
+        <h2><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="3"></circle><circle cx="19" cy="6" r="3"></circle><circle cx="12" cy="18" r="3"></circle><line x1="7.5" y1="7.5" x2="10" y2="16"></line><line x1="16.5" y1="7.5" x2="14" y2="16"></line><line x1="8" y1="6" x2="16" y2="6"></line></svg> Knowledge Graph</h2>
+        <div class="graph-header-actions">
+          <span id="graph-node-count" class="graph-stat"></span>
+          <button id="btn-graph-reset" class="tool-btn" title="Reset zoom">Reset</button>
+          <button id="btn-close-graph" class="tool-btn" title="Close"><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+      </div>
+      <div class="graph-canvas-container">
+        <canvas id="graph-canvas"></canvas>
+        <div id="graph-tooltip" class="graph-tooltip hidden"></div>
+        <div id="graph-empty" class="graph-empty-msg hidden">
+          <p>No documents yet.</p>
+          <p>Create some markdown files and link them with <code>[[Wiki Links]]</code> to see connections.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js" integrity="sha384-FF8a/n4tsDcp0oRDFHNNygVDoaTZfIGmaSzvbL8wMqj/8R5sD+JKKKqfQmwJQAQY" crossorigin="anonymous"></script>
   <script src="/app.js?v=4"></script>
 </body>
 

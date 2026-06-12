@@ -61,6 +61,7 @@ func ConfigureSync(git **sync.GitManager, docsDir string) http.HandlerFunc {
 		}
 
 		// Re-initialize GitManager if URL changed or if it was never initialized
+		sync.GitMu.Lock()
 		if currentConfig.RemoteURL != "" && (urlChanged || *git == nil) {
 			*git = sync.NewGitManager(currentConfig.RemoteURL, docsDir)
 			if err := (*git).Initialize(); err != nil {
@@ -69,6 +70,7 @@ func ConfigureSync(git **sync.GitManager, docsDir string) http.HandlerFunc {
 		} else if currentConfig.RemoteURL == "" {
 			*git = nil // Clear if URL was removed
 		}
+		sync.GitMu.Unlock()
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
@@ -78,11 +80,15 @@ func ConfigureSync(git **sync.GitManager, docsDir string) http.HandlerFunc {
 // TriggerSync manually starts a Git sync cycle
 func TriggerSync(git **sync.GitManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if *git == nil {
+		sync.GitMu.RLock()
+		g := *git
+		sync.GitMu.RUnlock()
+
+		if g == nil {
 			http.Error(w, `{"error":"Sync not configured"}`, http.StatusBadRequest)
 			return
 		}
-		go (*git).Sync()
+		go g.Sync()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 	}
@@ -91,11 +97,15 @@ func TriggerSync(git **sync.GitManager) http.HandlerFunc {
 // PullSync manually starts a Git pull
 func PullSync(git **sync.GitManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if *git == nil {
+		sync.GitMu.RLock()
+		g := *git
+		sync.GitMu.RUnlock()
+
+		if g == nil {
 			http.Error(w, `{"error":"Sync not configured"}`, http.StatusBadRequest)
 			return
 		}
-		go (*git).Pull()
+		go g.Pull()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 	}
