@@ -454,6 +454,12 @@ body.sidebar-closed .sidebar-float-toggle {
   border-bottom: 1px solid var(--border);
   min-height: var(--header-height);
   flex-shrink: 0;
+  transition: padding-left var(--transition);
+}
+
+.sidebar.collapsed ~ .main .breadcrumbs,
+body.sidebar-closed .main .breadcrumbs {
+  padding-left: 60px;
 }
 
 .breadcrumb-link {
@@ -1758,10 +1764,12 @@ kbd {
 
 /* ─── Toast UI Editor Seamless Overrides ──────────────────────── */
 #toast-editor {
-  height: calc(100vh - var(--header-height) - 40px) !important;
+  height: calc(100vh - var(--header-height)) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  background: transparent !important;
+  background: var(--bg-primary) !important;
+  border: none !important;
+  overflow: hidden !important;
 }
 
 .toastui-editor-defaultUI {
