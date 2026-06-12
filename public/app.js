@@ -633,11 +633,12 @@
     
     function enterEditor() {
         if (!currentDoc) return;
-        isEditing = true;
-        viewer.classList.add('hidden');
-        editorPane.classList.remove('hidden');
+        try {
+            isEditing = true;
+            viewer.classList.add('hidden');
+            editorPane.classList.remove('hidden');
 
-        if (!toastEditor) {
+            if (!toastEditor) {
             toastEditor = new toastui.Editor({
                 el: document.querySelector('#toast-editor'),
                 height: '100%',
@@ -700,10 +701,18 @@
 
         btnEdit.classList.add('hidden');
         btnSave.classList.remove('hidden');
-        btnCancel.classList.remove('hidden');
-        if(typeof btnUpload !== 'undefined' && btnUpload) btnUpload.classList.add('hidden');
-        btnDownloadPdf.classList.add('hidden');
-        btnDeleteDoc.classList.add('hidden');
+            btnCancel.classList.remove('hidden');
+            if(typeof btnUpload !== 'undefined' && btnUpload) btnUpload.classList.add('hidden');
+            btnDownloadPdf.classList.add('hidden');
+            btnDeleteDoc.classList.add('hidden');
+        } catch (e) {
+            console.error(e);
+            toast('Editor failed to start: ' + e.message, 'error');
+            // Revert UI changes
+            isEditing = false;
+            viewer.classList.remove('hidden');
+            editorPane.classList.add('hidden');
+        }
     }
 function exitEditor() {
         isEditing = false;

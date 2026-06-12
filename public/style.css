@@ -1993,7 +1993,7 @@ kbd {
 
 .toastui-editor-defaultUI-toolbar {
   background: transparent !important;
-  border-bottom: 1px solid var(--glass-border) !important;
+  border-bottom: 1px solid var(--border-light) !important;
   border-radius: var(--radius) var(--radius) 0 0 !important;
   padding: 4px 8px !important;
   min-height: 36px !important;
